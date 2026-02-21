@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h3 class="mb-4">Dashboard</h3>
+<div class="mb-3">
+    <a href="{% url 'expense-add' %}" class="btn btn-success">
+        Add Expense
+    </a>
+
+    <a href="{% url 'expense-list' %}" class="btn btn-primary">
+        View All Expenses
+    </a>
+    <a href="{% url 'budget-add' %}" class="btn btn-warning">
+        Set Monthly Budget
+    </a>
+    <a href="{% url 'budget-history' %}" class="btn btn-dark">
+        Budget History
+    </a>
+</div>
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card p-3">
+            <h5>Total Spending</h5>
+            <h3>₹ {{ total_spent }}</h3>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card p-3">
+            <h5>This Month</h5>
+            <h3>₹ {{ monthly_spent }}</h3>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card p-3">
+            <h5>Predicted Next Month</h5>
+            <h3>₹ {{ predicted_next_month }}</h3>
+        </div>
+    </div>
+</div>
+
+<div class="card p-4">
+    <h5>Category Breakdown</h5>
+    <canvas id="categoryChart"></canvas>
+</div>
+
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card p-3">
+            <h5>Monthly Budget</h5>
+            <h4>₹ {{ budget_amount }}</h4>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card p-3">
+            <h5>Remaining Amount</h5>
+            <h4>
+                ₹ {{ remaining_amount }}
+            </h4>
+        </div>
+    </div>
+</div>
+
+{% if percentage_used > 100 %}
+<div class="alert alert-danger mt-3">
+    ⚠ You have exceeded your monthly budget!
+</div>
+{% endif %}
+
+<div class="mt-3">
+    <div class="progress">
+        <div class="progress-bar 
+            {% if percentage_used > 100 %}
+                bg-danger
+            {% elif percentage_used > 75 %}
+                bg-warning
+            {% else %}
+                bg-success
+            {% endif %}"
+            role="progressbar"
+            style="width: {{ percentage_used }}%;">
+            {{ percentage_used }}%
+        </div>
+    </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const data = {
+        labels: [
+            {% for item in category_data %}
+                "{{ item.category__name }}",
+            {% endfor %}
+        ],
+        datasets: [{
+            data: [
+                {% for item in category_data %}
+                    {{ item.total }},
+                {% endfor %}
+            ]
+        }]
+    };
+
+    new Chart(document.getElementById("categoryChart"), {
+        type: "pie",
+        data: data
+    });
+</script>
+
+
+
+{% if insights %}
+<div class="card p-4 mt-4">
+    <h5>AI Insights</h5>
+    <ul>
+        {% for insight in insights %}
+            <li>{{ insight }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{% endblock %}

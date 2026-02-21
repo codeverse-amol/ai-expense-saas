@@ -1,0 +1,28 @@
+ai_expense_saas/
+│
+├── config/                  # Django project settings
+│   ├── settings/
+│   │   ├── base.py
+│   │   ├── development.py
+│   │   └── production.py
+│   ├── urls.py
+│   └── wsgi.py
+│
+├── apps/
+│   ├── users/
+│   ├── expenses/
+│   ├── analytics/
+│   └── ai_engine/
+│
+├── templates/
+├── static/
+├── media/
+│
+├── requirements/
+│   ├── base.txt
+│   ├── development.txt
+│   └── production.txt
+│
+├── .env
+├── manage.py
+└── docker-compose.yml (later)

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h3 class="mb-3">Add Expense</h3>
+
+<form method="post">
+    {% csrf_token %}
+    
+    <div class="mb-3">
+        {{ form.title.label_tag }}
+        {{ form.title }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.amount.label_tag }}
+        {{ form.amount }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.category.label_tag }}
+        {{ form.category }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.expense_date.label_tag }}
+        {{ form.expense_date }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.notes.label_tag }}
+        {{ form.notes }}
+    </div>
+
+    <button class="btn btn-success">Save</button>
+    <a href="{% url 'expense-list' %}" class="btn btn-secondary">Cancel</a>
+
+</form>
+
+{% endblock %}
