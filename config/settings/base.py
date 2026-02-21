@@ -9,43 +9,33 @@ https://docs.djangoproject.com/en/6.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
-
 from pathlib import Path
 import os
 from dotenv import load_dotenv
 import dj_database_url
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# --------------------------------------------------
+# BASE DIRECTORY
+# --------------------------------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-# Only load .env in development
-if os.getenv('DJANGO_SETTINGS_MODULE', '').endswith('development') or not os.getenv('DATABASE_URL'):
-    load_dotenv()
+# --------------------------------------------------
+# LOAD ENV VARIABLES
+# --------------------------------------------------
+load_dotenv(BASE_DIR / ".env")
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
+# --------------------------------------------------
+# SECURITY
+# --------------------------------------------------
+SECRET_KEY = os.environ.get("SECRET_KEY")
 
-# SECURITY WARNING: keep the secret key used in production secret!
+DEBUG = os.environ.get("DEBUG", "False") == "True"
 
-SECRET_KEY = os.getenv("SECRET_KEY")
+ALLOWED_HOSTS = []
 
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG") == "True"
-
-
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
-
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-USE_X_FORWARDED_HOST = True
-
-CSRF_TRUSTED_ORIGINS = [
-    "https://ai-expense-saas.onrender.com",
-]
-
-
-# Application definition
-
+# --------------------------------------------------
+# APPLICATIONS
+# --------------------------------------------------
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -54,7 +44,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
-    # Third party
+    # Third-party
     "rest_framework",
 
     # Local apps
@@ -64,51 +54,59 @@ INSTALLED_APPS = [
     "apps.ai_engine",
 ]
 
+# --------------------------------------------------
+# MIDDLEWARE
+# --------------------------------------------------
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware', # Security enhancements
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # For serving static files in production
+    "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # must be high
 
-    'django.contrib.sessions.middleware.SessionMiddleware', # Session management
-    'django.middleware.common.CommonMiddleware', # Common HTTP features
-    'django.middleware.csrf.CsrfViewMiddleware', # CSRF protection
-    'django.contrib.auth.middleware.AuthenticationMiddleware', # Authentication
-    'django.contrib.messages.middleware.MessageMiddleware', # Messaging framework
-    'django.middleware.clickjacking.XFrameOptionsMiddleware', # Clickjacking protection
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = 'config.urls'
+# --------------------------------------------------
+# TEMPLATES
+# --------------------------------------------------
+ROOT_URLCONF = "config.urls"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / "templates"],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [BASE_DIR / "templates"],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'config.wsgi.application'
+WSGI_APPLICATION = "config.wsgi.application"
 
-
-# Database
-# https://docs.djangoproject.com/en/6.0/ref/settings/#databases
+# --------------------------------------------------
+# DATABASE CONFIGURATION (FINAL FIXED VERSION)
+# --------------------------------------------------
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
 if DATABASE_URL:
     DATABASES = {
         "default": dj_database_url.config(
+            default=DATABASE_URL,
             conn_max_age=600,
-            ssl_require=True
+            ssl_require=True,
         )
     }
 else:
+    # Local development fallback
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -116,47 +114,40 @@ else:
         }
     }
 
-# Password validation
-# https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
-
+# --------------------------------------------------
+# PASSWORD VALIDATION
+# --------------------------------------------------
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
+# --------------------------------------------------
+# INTERNATIONALIZATION
+# --------------------------------------------------
+LANGUAGE_CODE = "en-us"
 
-# Internationalization
-# https://docs.djangoproject.com/en/6.0/topics/i18n/
-
-LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
+TIME_ZONE = "UTC"
 
 USE_I18N = True
-
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/6.0/howto/static-files/
-
+# --------------------------------------------------
+# STATIC & MEDIA
+# --------------------------------------------------
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
+# --------------------------------------------------
+# AUTH
+# --------------------------------------------------
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "users.User"
@@ -164,6 +155,3 @@ AUTH_USER_MODEL = "users.User"
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "dashboard"
 LOGOUT_REDIRECT_URL = "login"
-
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-
