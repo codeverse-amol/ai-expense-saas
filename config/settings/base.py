@@ -97,19 +97,24 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
-if DATABASE_URL:
+if DATABASE_URL and DATABASE_URL.startswith("postgres"):
     # Use PostgreSQL on production (Render)
-    import dj_database_url
     DATABASES = {
         "default": dj_database_url.config(
             default=DATABASE_URL,
             conn_max_age=600,
             conn_health_checks=True,
-            ssl_require=False,  # Render handles SSL at proxy level
+        )
+    }
+elif DATABASE_URL and DATABASE_URL.startswith("sqlite"):
+    # Allow SQLite via DATABASE_URL if explicitly set
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=DATABASE_URL,
         )
     }
 else:
-    # Local development fallback to SQLite
+    # Default to SQLite for development
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
