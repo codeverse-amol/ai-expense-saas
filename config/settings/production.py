@@ -5,10 +5,20 @@ DEBUG = False
 
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
 
-SECURE_BROWSER_XSS_FILTER = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
-SECURE_SSL_REDIRECT = True
+# 🔐 Required for Render (proxy SSL)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# 🔐 Session & CSRF Security
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SAMESITE = "Lax"
+
+# 🔐 Required for POST login on custom domains
+CSRF_TRUSTED_ORIGINS = [
+    "https://expense-manager-d7x5.onrender.com",
+]
+
+# ❗ Disable this temporarily (Render already forces HTTPS)
+SECURE_SSL_REDIRECT = False
