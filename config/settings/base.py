@@ -38,9 +38,14 @@ if ALLOWED_HOSTS:
 else:
     ALLOWED_HOSTS = []
 
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
+
 CSRF_TRUSTED_ORIGINS = [
     "https://ai-expense-saas.onrender.com",
 ]
+
 
 # Application definition
 
