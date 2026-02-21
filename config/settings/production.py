@@ -6,11 +6,16 @@ DEBUG = False
 # --------------------------------------------------
 # ALLOWED HOSTS & DOMAINS
 # --------------------------------------------------
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+ALLOWED_HOSTS = [
+    "expense-manager-d7x5.onrender.com",
+    "www.expense-manager-d7x5.onrender.com",
+    "localhost",
+    "127.0.0.1",
+]
 
 # Ensure Render domain is included
-render_domain = os.environ.get("RENDER_EXTERNAL_HOSTNAME", "")
-if render_domain:
+render_domain = os.environ.get("RENDER_EXTERNAL_HOSTNAME", "expense-manager-d7x5.onrender.com")
+if render_domain and render_domain not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append(render_domain)
 
 # --------------------------------------------------
@@ -33,10 +38,10 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
 # 🔐 CSRF Trusted Origins for POST requests
 CSRF_TRUSTED_ORIGINS = [
+    "https://expense-manager-d7x5.onrender.com",
+    "https://www.expense-manager-d7x5.onrender.com",
     "https://*.onrender.com",
-    f"https://{render_domain}" if render_domain else "",
 ]
-CSRF_TRUSTED_ORIGINS = [origin for origin in CSRF_TRUSTED_ORIGINS if origin]
 
 # --------------------------------------------------
 # SECURITY SETTINGS
