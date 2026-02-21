@@ -152,6 +152,11 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "users.User"
 
+# Custom authentication backend for email login
+AUTHENTICATION_BACKENDS = [
+    "apps.users.backends.EmailAuthenticationBackend",
+]
+
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "dashboard"
 LOGOUT_REDIRECT_URL = "login"
