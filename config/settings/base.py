@@ -31,8 +31,14 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG") == "True"
 
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
+ALLOWED_HOSTS = [
+    "ai-expense-saas.onrender.com",
+    ".onrender.com",
+]
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://ai-expense-saas.onrender.com",
+]
 
 # Application definition
 
@@ -158,8 +164,3 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
-
-
-CSRF_TRUSTED_ORIGINS = [
-    "https://ai-expense-saas.onrender.com",
-]
