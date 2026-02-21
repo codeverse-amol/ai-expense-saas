@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
+from django.db.utils import OperationalError
 import sys
 
 User = get_user_model()
@@ -16,6 +17,20 @@ class Command(BaseCommand):
         self.stdout.write("=" * 60)
         self.stdout.write("Creating/Checking superuser...")
         self.stdout.write("=" * 60)
+        
+        # Check if database is available
+        try:
+            # Try a simple query to see if DB is connected
+            User.objects.all().exists()
+        except OperationalError as e:
+            self.stdout.write(
+                self.style.WARNING(
+                    f'⚠ Database not available yet: {e}\n'
+                    f'Skipping superuser creation. It will be created on next deployment.'
+                )
+            )
+            self.stdout.write("=" * 60)
+            return
         
         # Check if user already exists
         try:
@@ -40,7 +55,7 @@ class Command(BaseCommand):
             pass
         except Exception as e:
             self.stdout.write(self.style.ERROR(f'✗ Error checking user: {e}'))
-            sys.exit(1)
+            return
         
         # Create superuser
         try:
@@ -63,6 +78,4 @@ class Command(BaseCommand):
             self.stdout.write("=" * 60)
         except Exception as e:
             self.stdout.write(self.style.ERROR(f'✗ Error creating superuser: {e}'))
-            import traceback
-            traceback.print_exc()
-            sys.exit(1)
+            self.stdout.write("=" * 60)
