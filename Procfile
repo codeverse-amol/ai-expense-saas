@@ -1,2 +1,2 @@
 web: gunicorn config.wsgi:application
-release: python manage.py migrate --noinput 2>&1 ; python manage.py create_superuser 2>&1 ; true
+release: DJANGO_SETTINGS_MODULE=config.settings.production python manage.py migrate --noinput 2>&1 ; DJANGO_SETTINGS_MODULE=config.settings.production python manage.py create_superuser 2>&1 ; true
