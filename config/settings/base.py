@@ -92,29 +92,42 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 
 # --------------------------------------------------
-# DATABASE CONFIGURATION (FINAL FIXED VERSION)
+# DATABASE CONFIGURATION
 # --------------------------------------------------
 
+import dj_database_url
+
+# Get DATABASE_URL from environment
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
-if DATABASE_URL and DATABASE_URL.startswith("postgres"):
-    # Use PostgreSQL on production (Render)
-    DATABASES = {
-        "default": dj_database_url.config(
-            default=DATABASE_URL,
-            conn_max_age=600,
-            conn_health_checks=True,
-        )
-    }
-elif DATABASE_URL and DATABASE_URL.startswith("sqlite"):
-    # Allow SQLite via DATABASE_URL if explicitly set
-    DATABASES = {
-        "default": dj_database_url.config(
-            default=DATABASE_URL,
-        )
-    }
+print(f"[DEBUG] DATABASE_URL present: {bool(DATABASE_URL)}")
+if DATABASE_URL:
+    print(f"[DEBUG] DATABASE_URL starts with: {DATABASE_URL[:20]}...")
+
+if DATABASE_URL:
+    # Parse and use the PostgreSQL URL directly
+    try:
+        DATABASES = {
+            "default": dj_database_url.config(
+                default=DATABASE_URL,
+                conn_max_age=600,
+                conn_health_checks=True,
+                ssl_require=False,
+            )
+        }
+        print("[DEBUG] ✓ Using PostgreSQL from DATABASE_URL")
+    except Exception as e:
+        print(f"[DEBUG] ✗ Error parsing DATABASE_URL: {e}")
+        # Fallback to SQLite
+        DATABASES = {
+            "default": {
+                "ENGINE": "django.db.backends.sqlite3",
+                "NAME": BASE_DIR / "db.sqlite3",
+            }
+        }
 else:
     # Default to SQLite for development
+    print("[DEBUG] DATABASE_URL not set, using SQLite")
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
