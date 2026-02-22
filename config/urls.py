@@ -16,14 +16,19 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.contrib.auth import views as auth_views
 from django.views.generic import RedirectView
-from apps.users.views import CustomLoginView
+from apps.users.forms import EmailAuthenticationForm
 
 urlpatterns = [
     path("admin/", admin.site.urls),
 
-    # Authentication - Custom login view
-    path("login/", CustomLoginView.as_view(), name="login"),
+    # Authentication - Built-in LoginView with custom email form
+    path("login/", auth_views.LoginView.as_view(
+        authentication_form=EmailAuthenticationForm,
+        template_name='registration/login.html',
+        redirect_authenticated_user=True
+    ), name="login"),
     
     # User registration and logout (custom views)
     path("auth/", include("apps.users.urls")),
