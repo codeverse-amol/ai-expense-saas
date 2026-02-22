@@ -607,6 +607,66 @@ class CategoryListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         return Category.objects.filter(user=self.request.user)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        now = timezone.now()
+        
+        # Get year and month from query params or use current
+        year = int(self.request.GET.get('year', now.year))
+        month = int(self.request.GET.get('month', now.month))
+        
+        # Get available years for filter
+        budget_years = MonthlyBudget.objects.filter(user=user).values_list('year', flat=True).distinct().order_by('-year')
+        available_years = list(budget_years) if budget_years else [now.year]
+        if year not in available_years:
+            available_years.append(year)
+            available_years.sort(reverse=True)
+        
+        # Month name for display
+        month_names = ['January', 'February', 'March', 'April', 'May', 'June',
+                      'July', 'August', 'September', 'October', 'November', 'December']
+        month_name = month_names[month - 1]
+        
+        # Get category budgets for selected month
+        category_budgets = {}
+        for cb in CategoryBudget.objects.filter(user=user, year=year, month=month):
+            category_budgets[cb.category_id] = cb.amount
+        
+        # Get expenses per category for selected month
+        category_expenses = {}
+        expenses = Expense.objects.filter(
+            user=user,
+            date__year=year,
+            date__month=month,
+            is_deleted=False
+        )
+        for expense in expenses:
+            if expense.category_id not in category_expenses:
+                category_expenses[expense.category_id] = 0
+            category_expenses[expense.category_id] += expense.amount
+        
+        # Attach budget and expense data to categories
+        categories_data = []
+        for category in self.get_queryset():
+            budget = category_budgets.get(category.id, 0)
+            spent = category_expenses.get(category.id, 0)
+            categories_data.append({
+                'category': category,
+                'budget': budget,
+                'spent': spent,
+                'remaining': budget - spent,
+                'percentage': round((spent / budget * 100), 1) if budget > 0 else 0
+            })
+        
+        context['categories_data'] = categories_data
+        context['year'] = year
+        context['month'] = month
+        context['month_name'] = month_name
+        context['available_years'] = available_years
+        
+        return context
 
 
 class CategoryCreateView(LoginRequiredMixin, CreateView):

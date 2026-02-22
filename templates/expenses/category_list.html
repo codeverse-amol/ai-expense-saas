@@ -6,7 +6,50 @@
 {% block content %}
 <div class="page-header">
     <h1><i class="fas fa-tags"></i> My Categories</h1>
-    <p class="text-muted">Manage your expense categories</p>
+    <p class="text-muted">Manage your expense categories - {{ month_name }} {{ year }}</p>
+</div>
+
+<!-- Year and Month Filter -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row align-items-end g-3">
+            <div class="col-md-3">
+                <label for="yearFilter" class="form-label"><i class="fas fa-calendar-alt me-2"></i>Year:</label>
+                <select id="yearFilter" class="form-select">
+                    {% for yr in available_years %}
+                        <option value="{{ yr }}" {% if year == yr %}selected{% endif %}>{{ yr }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="monthFilter" class="form-label"><i class="fas fa-calendar me-2"></i>Month:</label>
+                <select id="monthFilter" class="form-select">
+                    <option value="1" {% if month == 1 %}selected{% endif %}>January</option>
+                    <option value="2" {% if month == 2 %}selected{% endif %}>February</option>
+                    <option value="3" {% if month == 3 %}selected{% endif %}>March</option>
+                    <option value="4" {% if month == 4 %}selected{% endif %}>April</option>
+                    <option value="5" {% if month == 5 %}selected{% endif %}>May</option>
+                    <option value="6" {% if month == 6 %}selected{% endif %}>June</option>
+                    <option value="7" {% if month == 7 %}selected{% endif %}>July</option>
+                    <option value="8" {% if month == 8 %}selected{% endif %}>August</option>
+                    <option value="9" {% if month == 9 %}selected{% endif %}>September</option>
+                    <option value="10" {% if month == 10 %}selected{% endif %}>October</option>
+                    <option value="11" {% if month == 11 %}selected{% endif %}>November</option>
+                    <option value="12" {% if month == 12 %}selected{% endif %}>December</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="button" class="btn btn-primary w-100" onclick="updateFilters()">
+                    <i class="fas fa-filter me-2"></i>Apply Filters
+                </button>
+            </div>
+            <div class="col-md-3">
+                <a href="{% url 'category-list' %}" class="btn btn-secondary w-100">
+                    <i class="fas fa-redo me-2"></i>Current Month
+                </a>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="mb-4">
@@ -18,24 +61,58 @@
     </a>
 </div>
 
-{% if categories %}
+{% if categories_data %}
 <div class="row">
-    {% for category in categories %}
-    <div class="col-md-4 col-lg-3 mb-3">
+    {% for item in categories_data %}
+    <div class="col-md-6 col-lg-4 mb-3">
         <div class="card h-100">
             <div class="card-body">
                 <h5 class="card-title">
-                    <i class="fas fa-tag text-primary"></i> {{ category.name }}
+                    <i class="fas fa-tag text-primary"></i> {{ item.category.name }}
                 </h5>
                 <p class="text-muted small">
-                    Created: {{ category.created_at|date:"M d, Y" }}
+                    Created: {{ item.category.created_at|date:"M d, Y" }}
                 </p>
+                
+                {% if item.budget > 0 %}
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <small><strong>Budget:</strong></small>
+                        <small class="text-primary">₹{{ item.budget|floatformat:2 }}</small>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <small><strong>Spent:</strong></small>
+                        <small class="text-danger">₹{{ item.spent|floatformat:2 }}</small>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <small><strong>Remaining:</strong></small>
+                        <small class="text-success">₹{{ item.remaining|floatformat:2 }}</small>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar {% if item.percentage > 100 %}bg-danger{% elif item.percentage > 80 %}bg-warning{% else %}bg-success{% endif %}" 
+                             style="width: {% if item.percentage > 100 %}100{% else %}{{ item.percentage }}{% endif %}%">
+                        </div>
+                    </div>
+                    <small class="text-muted">{{ item.percentage }}% used</small>
+                </div>
+                {% else %}
+                <div class="mb-3">
+                    <small class="text-muted">No budget set for {{ month_name }}</small>
+                    {% if item.spent > 0 %}
+                    <div class="d-flex justify-content-between mt-1">
+                        <small><strong>Spent:</strong></small>
+                        <small class="text-danger">₹{{ item.spent|floatformat:2 }}</small>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+                
                 <div class="d-grid gap-2">
                     <div class="btn-group w-100">
-                        <a href="{% url 'category-edit' category.id %}" class="btn btn-sm btn-outline-primary">
+                        <a href="{% url 'category-edit' item.category.id %}" class="btn btn-sm btn-outline-primary">
                             <i class="fas fa-edit"></i> Edit
                         </a>
-                        <a href="{% url 'category-delete' category.id %}" class="btn btn-sm btn-outline-danger">
+                        <a href="{% url 'category-delete' item.category.id %}" class="btn btn-sm btn-outline-danger">
                             <i class="fas fa-trash"></i> Delete
                         </a>
                     </div>
@@ -69,5 +146,13 @@
     </div>
 </div>
 {% endif %}
+
+<script>
+function updateFilters() {
+    const year = document.getElementById('yearFilter').value;
+    const month = document.getElementById('monthFilter').value;
+    window.location.href = `?year=${year}&month=${month}`;
+}
+</script>
 
 {% endblock %}
