@@ -1,5 +1,5 @@
 from django import forms
-from .models import Expense, MonthlyBudget
+from .models import Expense, Category, MonthlyBudget
 
 
 class ExpenseForm(forms.ModelForm):
@@ -28,7 +28,7 @@ class ExpenseFilterForm(forms.Form):
     
     category = forms.ModelChoiceField(
         required=False,
-        queryset=None,
+        queryset=Category.objects.none(),
         label="Category",
         widget=forms.Select(attrs={
             "class": "form-select"
@@ -94,19 +94,12 @@ class ExpenseFilterForm(forms.Form):
     
     def __init__(self, user=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Set available categories for the user
+        # Set available categories for the user only if user is provided
         if user:
-            self.fields['category'].queryset = (
-                Expense.objects.filter(user=user, is_deleted=False)
-                .values_list('category', flat=True)
-                .distinct()
-            )
-            # Get the actual category objects
-            from .models import Category
-            self.fields['category'].queryset = Category.objects.filter(
-                expense__user=user,
-                expense__is_deleted=False
-            ).distinct()
-        else:
-            from .models import Category
-            self.fields['category'].queryset = Category.objects.none()
+            try:
+                self.fields['category'].queryset = Category.objects.filter(
+                    user=user
+                ).order_by('name')
+            except Exception as e:
+                print(f"Error loading categories: {e}")
+                self.fields['category'].queryset = Category.objects.none()
