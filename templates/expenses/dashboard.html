@@ -23,6 +23,9 @@
     <a href="{% url 'budget-add' %}" class="btn btn-warning btn-lg">
         <i class="fas fa-calculator me-2"></i>Set Budget
     </a>
+    <a href="{% url 'category-budget-setup' %}" class="btn btn-info btn-lg">
+        <i class="fas fa-tags me-2"></i>Category Budgets
+    </a>
     <a href="{% url 'budget-history' %}" class="btn btn-dark btn-lg">
         <i class="fas fa-history me-2"></i>Budget History
     </a>
@@ -54,6 +57,81 @@
         </small>
     </div>
 </div>
+
+<!-- Category-wise Budget Breakdown -->
+{% if category_budget_data %}
+<div class="card mt-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-chart-pie me-2"></i>Category Budget Breakdown</span>
+        <a href="{% url 'category-budget-setup' %}" class="btn btn-sm btn-primary">
+            <i class="fas fa-edit"></i> Edit Budgets
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            {% for item in category_budget_data %}
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="card border-left-{{ item.status }}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h5 class="mb-0">
+                                <i class="fas fa-tag text-{{ item.status }}"></i>
+                                {{ item.category.name }}
+                            </h5>
+                            <a href="{% url 'expense-add' %}?category={{ item.category.id }}" 
+                               class="btn btn-sm btn-outline-primary"
+                               title="Add expense to {{ item.category.name }}">
+                                <i class="fas fa-plus"></i>
+                            </a>
+                        </div>
+                        
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between text-sm">
+                                <span class="text-muted">Budget:</span>
+                                <strong class="text-primary">₹{{ item.budget|floatformat:2 }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between text-sm">
+                                <span class="text-muted">Spent:</span>
+                                <strong class="text-{{ item.status }}">₹{{ item.spent|floatformat:2 }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between text-sm">
+                                <span class="text-muted">Remaining:</span>
+                                <strong class="{% if item.remaining < 0 %}text-danger{% else %}text-success{% endif %}">
+                                    ₹{{ item.remaining|floatformat:2 }}
+                                </strong>
+                            </div>
+                        </div>
+                        
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-{{ item.status }}"
+                                 role="progressbar"
+                                 style="width: {% if item.percentage > 100 %}100{% else %}{{ item.percentage }}{% endif %}%"
+                                 aria-valuenow="{{ item.percentage }}"
+                                 aria-valuemin="0"
+                                 aria-valuemax="100">
+                            </div>
+                        </div>
+                        <div class="text-center mt-1">
+                            <small class="text-{{ item.status }} fw-bold">{{ item.percentage }}%</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        {% if total_category_budget > 0 %}
+        <div class="alert alert-info mt-3 mb-0">
+            <strong>Total Category Budget:</strong> ₹{{ total_category_budget|floatformat:2 }}
+            {% if budget_amount > 0 %}
+            | <strong>Monthly Budget:</strong> ₹{{ budget_amount|floatformat:2 }}
+            | <strong>Unallocated:</strong> ₹{{ budget_amount|add:"-"|add:total_category_budget|floatformat:2 }}
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
 
 <!-- Category Breakdown Chart -->
 <div class="card">

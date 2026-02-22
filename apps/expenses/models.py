@@ -23,6 +23,38 @@ class Category(models.Model):
         return f"{self.name} ({self.user.email})"
     
 
+class CategoryBudget(models.Model):
+    """Budget allocation for a specific category in a specific month"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="category_budgets"
+    )
+
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.CASCADE,
+        related_name="budgets"
+    )
+
+    year = models.IntegerField()
+    month = models.IntegerField()  # 1-12
+
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("user", "category", "year", "month")
+        ordering = ["category__name"]
+
+    def __str__(self):
+        return f"{self.category.name}: {self.amount} ({self.month}/{self.year})"
+
+
 class Expense(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 

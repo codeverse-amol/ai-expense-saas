@@ -1,5 +1,5 @@
 from django import forms
-from .models import Expense, Category, MonthlyBudget
+from .models import Expense, Category, MonthlyBudget, CategoryBudget
 
 
 class CategoryForm(forms.ModelForm):
@@ -13,6 +13,27 @@ class CategoryForm(forms.ModelForm):
                 "placeholder": "Enter category name (e.g., Food, Transport, Bills)"
             })
         }
+
+
+class CategoryBudgetForm(forms.ModelForm):
+    """Form for setting budget for a category in a specific month"""
+    class Meta:
+        model = CategoryBudget
+        fields = ["category", "amount"]
+        widgets = {
+            "category": forms.Select(attrs={"class": "form-select"}),
+            "amount": forms.NumberInput(attrs={
+                "class": "form-control",
+                "placeholder": "Enter budget amount",
+                "step": "0.01",
+                "min": "0"
+            })
+        }
+
+    def __init__(self, user=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if user:
+            self.fields['category'].queryset = Category.objects.filter(user=user)
 
 
 class ExpenseForm(forms.ModelForm):

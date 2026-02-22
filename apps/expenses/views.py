@@ -8,8 +8,8 @@ from django.db.models import Sum, Q
 from django.db.models.functions import TruncMonth
 from django.utils import timezone
 
-from .models import Expense, MonthlyBudget, Category
-from .forms import ExpenseForm, ExpenseFilterForm, CategoryForm
+from .models import Expense, MonthlyBudget, Category, CategoryBudget
+from .forms import ExpenseForm, ExpenseFilterForm, CategoryForm, CategoryBudgetForm
 from .budget_forms import MonthlyBudgetForm
 
 import json
@@ -67,6 +67,40 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             remaining_amount = budget_amount - monthly_spent
             percentage_used = (monthly_spent / budget_amount * 100) if budget_amount > 0 else 0
 
+            # Category-wise budget breakdown
+            category_budgets = CategoryBudget.objects.filter(
+                user=user,
+                year=now.year,
+                month=now.month
+            ).select_related('category')
+            
+            category_budget_data = []
+            total_category_budget = 0
+            
+            for cat_budget in category_budgets:
+                # Calculate spent for this category this month
+                spent = Expense.objects.filter(
+                    user=user,
+                    category=cat_budget.category,
+                    is_deleted=False,
+                    expense_date__year=now.year,
+                    expense_date__month=now.month
+                ).aggregate(total=Sum("amount"))["total"] or 0
+                
+                remaining = cat_budget.amount - spent
+                percentage = (spent / cat_budget.amount * 100) if cat_budget.amount > 0 else 0
+                
+                category_budget_data.append({
+                    'category': cat_budget.category,
+                    'budget': cat_budget.amount,
+                    'spent': spent,
+                    'remaining': remaining,
+                    'percentage': round(percentage, 1),
+                    'status': 'danger' if percentage > 100 else ('warning' if percentage > 80 else 'success')
+                })
+                
+                total_category_budget += cat_budget.amount
+
             context["total_spent"] = total_spent
             context["monthly_spent"] = monthly_spent
             context["category_data"] = category_data
@@ -74,6 +108,10 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             context["remaining_amount"] = remaining_amount
             context["percentage_used"] = round(percentage_used, 2)
             context["predicted_next_month"] = 0
+            context["category_budget_data"] = category_budget_data
+            context["total_category_budget"] = total_category_budget
+            context["current_month"] = now.month
+            context["current_year"] = now.year
 
         except Exception as e:
             # If anything fails, just show empty dashboard
@@ -85,6 +123,8 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             context["remaining_amount"] = 0
             context["percentage_used"] = 0
             context["predicted_next_month"] = 0
+            context["category_budget_data"] = []
+            context["total_category_budget"] = 0
 
         return context
 
@@ -196,6 +236,19 @@ class ExpenseCreateView(LoginRequiredMixin, CreateView):
         kwargs = super().get_form_kwargs()
         kwargs["user"] = self.request.user
         return kwargs
+
+    def get_initial(self):
+        """Pre-select category if passed in query parameter"""
+        initial = super().get_initial()
+        category_id = self.request.GET.get('category')
+        if category_id:
+            try:
+                # Verify the category belongs to the user
+                category = Category.objects.get(id=category_id, user=self.request.user)
+                initial['category'] = category
+            except Category.DoesNotExist:
+                pass
+        return initial
 
     def form_valid(self, form):
         form.instance.user = self.request.user
@@ -391,3 +444,91 @@ class CategoryDeleteView(LoginRequiredMixin, UpdateView):
         
         category.delete()
         return redirect("category-list")
+
+
+# ======================================
+# CATEGORY BUDGET MANAGEMENT
+# ======================================
+class CategoryBudgetSetupView(LoginRequiredMixin, TemplateView):
+    """View to set budgets for all categories for current month"""
+    template_name = "expenses/category_budget_setup.html"
+    login_url = 'login'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        now = timezone.now()
+        
+        # Get year and month from query params or use current
+        year = int(self.request.GET.get('year', now.year))
+        month = int(self.request.GET.get('month', now.month))
+        
+        # Get all user's categories
+        categories = Category.objects.filter(user=user)
+        
+        # Get existing category budgets for this month
+        existing_budgets = {}
+        category_budgets = CategoryBudget.objects.filter(
+            user=user,
+            year=year,
+            month=month
+        )
+        for cb in category_budgets:
+            existing_budgets[cb.category_id] = cb.amount
+        
+        # Prepare category data with current budgets
+        category_data = []
+        for category in categories:
+            category_data.append({
+                'id': category.id,
+                'name': category.name,
+                'current_budget': existing_budgets.get(category.id, 0)
+            })
+        
+        # Get monthly budget if exists
+        monthly_budget = MonthlyBudget.objects.filter(
+            user=user,
+            year=year,
+            month=month
+        ).first()
+        
+        context['categories'] = category_data
+        context['year'] = year
+        context['month'] = month
+        context['monthly_budget'] = monthly_budget
+        context['total_allocated'] = sum(existing_budgets.values())
+        
+        return context
+    
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        now = timezone.now()
+        
+        year = int(request.POST.get('year', now.year))
+        month = int(request.POST.get('month', now.month))
+        
+        # Process each category budget
+        categories = Category.objects.filter(user=user)
+        for category in categories:
+            amount_key = f'budget_{category.id}'
+            amount = request.POST.get(amount_key, '0').strip()
+            
+            if amount and float(amount) > 0:
+                # Update or create category budget
+                CategoryBudget.objects.update_or_create(
+                    user=user,
+                    category=category,
+                    year=year,
+                    month=month,
+                    defaults={'amount': float(amount)}
+                )
+            else:
+                # Delete if amount is 0 or empty
+                CategoryBudget.objects.filter(
+                    user=user,
+                    category=category,
+                    year=year,
+                    month=month
+                ).delete()
+        
+        return redirect('dashboard')

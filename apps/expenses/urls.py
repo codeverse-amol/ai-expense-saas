@@ -11,6 +11,7 @@ from .views import (
     CategoryCreateView,
     CategoryUpdateView,
     CategoryDeleteView,
+    CategoryBudgetSetupView,
 )
 
 urlpatterns = [
@@ -25,4 +26,5 @@ urlpatterns = [
     path("categories/add/", CategoryCreateView.as_view(), name="category-add"),
     path("categories/edit/<uuid:pk>/", CategoryUpdateView.as_view(), name="category-edit"),
     path("categories/delete/<uuid:pk>/", CategoryDeleteView.as_view(), name="category-delete"),
+    path("category-budgets/setup/", CategoryBudgetSetupView.as_view(), name="category-budget-setup"),
 ]
