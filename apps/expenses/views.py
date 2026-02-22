@@ -34,12 +34,43 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         user = self.request.user
         now = timezone.now()
         
+        # Get year and month from query params or use current
+        year = int(self.request.GET.get('year', now.year))
+        month = int(self.request.GET.get('month', now.month))
+        
+        # Calculate previous and next month/year for navigation
+        if month == 1:
+            prev_month, prev_year = 12, year - 1
+        else:
+            prev_month, prev_year = month - 1, year
+        
+        if month == 12:
+            next_month, next_year = 1, year + 1
+        else:
+            next_month, next_year = month + 1, year
+        
+        context['selected_year'] = year
+        context['selected_month'] = month
+        context['prev_year'] = prev_year
+        context['prev_month'] = prev_month
+        context['next_year'] = next_year
+        context['next_month'] = next_month
+        
         # Try to get cached dashboard data
-        cache_key = f'dashboard_{user.id}_{now.year}_{now.month}'
+        cache_key = f'dashboard_{user.id}_{year}_{month}'
         cached_data = cache.get(cache_key)
         
         if cached_data:
             logger.info(f"Dashboard cache hit for user {user.email}")
+            # Update with navigation data
+            cached_data.update({
+                'selected_year': year,
+                'selected_month': month,
+                'prev_year': prev_year,
+                'prev_month': prev_month,
+                'next_year': next_year,
+                'next_month': next_month,
+            })
             context.update(cached_data)
             return context
         
@@ -58,28 +89,33 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 Expense.objects.filter(
                     user=user,
                     is_deleted=False,
-                    expense_date__year=now.year,
-                    expense_date__month=now.month,
+                    expense_date__year=year,
+                    expense_date__month=month,
                 )
                 .aggregate(total=Sum("amount"))["total"]
                 or 0
             )
 
-            # Safe category data
+            # Safe category data for selected month
             try:
                 category_data = list(
-                    Expense.objects.filter(user=user, is_deleted=False)
+                    Expense.objects.filter(
+                        user=user, 
+                        is_deleted=False,
+                        expense_date__year=year,
+                        expense_date__month=month
+                    )
                     .values("category__name")
                     .annotate(total=Sum("amount"))
                 )
             except:
                 category_data = []
 
-            # Budget info
+            # Budget info for selected month
             current_budget = MonthlyBudget.objects.filter(
                 user=user,
-                year=now.year,
-                month=now.month
+                year=year,
+                month=month
             ).first()
 
             budget_amount = current_budget.amount if current_budget else 0
@@ -90,18 +126,18 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             predicted_next_month = forecast_next_month_spending(user)
 
             # Category-wise budget breakdown (optimized with prefetch)
-            # Prefetch expenses for current month to avoid N+1 queries
+            # Prefetch expenses for selected month to avoid N+1 queries
             current_month_expenses = Expense.objects.filter(
                 user=user,
                 is_deleted=False,
-                expense_date__year=now.year,
-                expense_date__month=now.month
+                expense_date__year=year,
+                expense_date__month=month
             )
             
             category_budgets = CategoryBudget.objects.filter(
                 user=user,
-                year=now.year,
-                month=now.month
+                year=year,
+                month=month
             ).select_related('category').prefetch_related(
                 Prefetch(
                     'category__expenses',
@@ -136,6 +172,10 @@ class DashboardView(LoginRequiredMixin, TemplateView):
 
             # Calculate unallocated budget
             unallocated_budget = budget_amount - total_category_budget
+            
+            # Create date object for selected month
+            from datetime import date
+            selected_date = date(year, month, 1)
 
             
             # Cache the dashboard data for 15 minutes
@@ -150,8 +190,8 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 "category_budget_data": category_budget_data,
                 "total_category_budget": total_category_budget,
                 "unallocated_budget": unallocated_budget,
-                "current_month": now.replace(day=1),  # First day of month for date formatting
-                "current_year": now.year,
+                "current_month": selected_date,  # First day of selected month for date formatting
+                "current_year": year,
                 "ai_insights": context.get("ai_insights", []),
             }
             cache.set(cache_key, dashboard_data, 60 * 15)  # 15 minutes
@@ -166,12 +206,17 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             context["category_budget_data"] = category_budget_data
             context["total_category_budget"] = total_category_budget
             context["unallocated_budget"] = unallocated_budget
-            context["current_month"] = now.replace(day=1)  # First day of month for date formatting
-            context["current_year"] = now.year
+            
+            from datetime import date
+            selected_date = date(year, month, 1)
+            context["current_month"] = selected_date  # First day of selected month for date formatting
+            context["current_year"] = year
 
         except Exception as e:
             # If anything fails, just show empty dashboard
             logger.error(f"Dashboard error for user {user.email}: {e}", exc_info=True)
+            from datetime import date
+            selected_date = date(year, month, 1)
             context["total_spent"] = 0
             context["monthly_spent"] = 0
             context["category_data"] = []
@@ -181,8 +226,8 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             context["predicted_next_month"] = 0
             context["category_budget_data"] = []
             context["total_category_budget"] = 0
-            context["current_month"] = now.replace(day=1)
-            context["current_year"] = now.year
+            context["current_month"] = selected_date
+            context["current_year"] = year
 
         return context
 
