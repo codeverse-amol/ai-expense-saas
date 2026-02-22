@@ -95,6 +95,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 # DATABASE CONFIGURATION
 # --------------------------------------------------
 
+from urllib.parse import urlparse
 import dj_database_url
 
 # Get DATABASE_URL from environment
@@ -103,32 +104,40 @@ DATABASE_URL = os.environ.get("DATABASE_URL")
 print(f"[DEBUG] DATABASE_URL present: {bool(DATABASE_URL)}")
 if DATABASE_URL:
     print(f"[DEBUG] DATABASE_URL starts with: {DATABASE_URL[:20]}...")
-    print(f"[DEBUG] DATABASE_URL full length: {len(DATABASE_URL)}")
 
 if DATABASE_URL:
-    # Parse and use the PostgreSQL URL directly
     try:
-        db_config = dj_database_url.config(
-            default=DATABASE_URL,
-            conn_max_age=600,
-            conn_health_checks=True,
-        )
+        # Manually parse the URL to handle Render's format better
+        parsed_url = urlparse(DATABASE_URL)
         
-        # Debug: Print what was parsed
-        print(f"[DEBUG] Parsed DB Engine: {db_config.get('ENGINE')}")
-        print(f"[DEBUG] Parsed DB Host: {db_config.get('HOST')}")
-        print(f"[DEBUG] Parsed DB Port: {db_config.get('PORT')}")
-        print(f"[DEBUG] Parsed DB Name: {db_config.get('NAME')}")
+        print(f"[DEBUG] Parsed scheme: {parsed_url.scheme}")
+        print(f"[DEBUG] Parsed hostname: {parsed_url.hostname}")
+        print(f"[DEBUG] Parsed port: {parsed_url.port}")
+        print(f"[DEBUG] Parsed database: {parsed_url.path.lstrip('/')}")
+        print(f"[DEBUG] Parsed user: {parsed_url.username}")
         
-        # FIX: If PORT is empty, set it to 5432 (PostgreSQL default)
-        if not db_config.get('PORT'):
-            db_config['PORT'] = 5432
-            print(f"[DEBUG] ✓ Set PORT to default 5432")
-        
+        # Build DATABASES config manually
         DATABASES = {
-            "default": db_config
+            "default": {
+                "ENGINE": "django.db.backends.postgresql",
+                "NAME": parsed_url.path.lstrip("/"),  # Remove leading /
+                "USER": parsed_url.username,
+                "PASSWORD": parsed_url.password,
+                "HOST": parsed_url.hostname,
+                "PORT": parsed_url.port or 5432,  # Default to 5432
+                "CONN_MAX_AGE": 600,
+                "OPTIONS": {
+                    "sslmode": "require",
+                }
+            }
         }
-        print("[DEBUG] ✓ Using PostgreSQL from DATABASE_URL")
+        
+        print(f"[DEBUG] ✓ Database configured:")
+        print(f"  - Engine: postgresql")
+        print(f"  - Host: {parsed_url.hostname}")
+        print(f"  - Port: {parsed_url.port or 5432}")
+        print(f"  - Database: {parsed_url.path.lstrip('/')}")
+        
     except Exception as e:
         print(f"[DEBUG] ✗ Error parsing DATABASE_URL: {e}")
         import traceback
