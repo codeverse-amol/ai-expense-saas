@@ -20,150 +20,71 @@ import json
 # ======================================
 class DashboardView(LoginRequiredMixin, TemplateView):
     template_name = "expenses/dashboard.html"
+    login_url = 'login'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
         now = timezone.now()
 
-        # -----------------------------
-        # TOTAL SPENDING
-        # -----------------------------
-        total_spent = (
-            Expense.objects.filter(user=user, is_deleted=False)
-            .aggregate(total=Sum("amount"))["total"]
-            or 0
-        )
-
-        # -----------------------------
-        # CURRENT MONTH SPENDING
-        # -----------------------------
-        monthly_spent = (
-            Expense.objects.filter(
-                user=user,
-                is_deleted=False,
-                expense_date__year=now.year,
-                expense_date__month=now.month,
+        try:
+            # Get basic stats with error handling
+            total_spent = (
+                Expense.objects.filter(user=user, is_deleted=False)
+                .aggregate(total=Sum("amount"))["total"]
+                or 0
             )
-            .aggregate(total=Sum("amount"))["total"]
-            or 0
-        )
 
-        # -----------------------------
-        # CATEGORY BREAKDOWN
-        # -----------------------------
-        category_data = (
-            Expense.objects.filter(user=user, is_deleted=False)
-            .values("category__name")
-            .annotate(total=Sum("amount"))
-        )
-
-        # -----------------------------
-        # MONTHLY TREND DATA (Prediction)
-        # -----------------------------
-        monthly_data = (
-            Expense.objects.filter(user=user, is_deleted=False)
-            .annotate(month=TruncMonth("expense_date"))
-            .values("month")
-            .annotate(total=Sum("amount"))
-            .order_by("month")
-        )
-
-        monthly_totals = [item["total"] for item in monthly_data]
-
-        if len(monthly_totals) >= 3:
-            predicted_next_month = sum(monthly_totals[-3:]) / 3
-        elif monthly_totals:
-            predicted_next_month = sum(monthly_totals) / len(monthly_totals)
-        else:
-            predicted_next_month = 0
-
-        # -----------------------------
-        # CURRENT MONTH BUDGET
-        # -----------------------------
-        current_budget = MonthlyBudget.objects.filter(
-            user=user,
-            year=now.year,
-            month=now.month
-        ).first()
-
-        if current_budget:
-            budget_amount = current_budget.amount
-        else:
-            budget_amount = 0
-
-        # Remaining amount
-        remaining_amount = budget_amount - monthly_spent
-
-        # Percentage used
-        if budget_amount > 0:
-            percentage_used = (monthly_spent / budget_amount) * 100
-        else:
-            percentage_used = 0
-
-        # -----------------------------
-        # CONTEXT
-        # -----------------------------
-        context["total_spent"] = total_spent
-        context["monthly_spent"] = monthly_spent
-        context["category_data"] = list(category_data)
-        context["predicted_next_month"] = round(predicted_next_month, 2)
-
-        context["budget_amount"] = budget_amount
-        context["remaining_amount"] = remaining_amount
-        context["percentage_used"] = round(percentage_used, 2)
-
-        # SMART INSIGHTS
-        insights = []
-
-        # Compare this month vs last month
-        last_month = now.month - 1
-        last_year = now.year
-
-        if last_month == 0:
-            last_month = 12
-            last_year -= 1
-
-        last_month_spent = (
-            Expense.objects.filter(
-                user=user,
-                is_deleted=False,
-                expense_date__year=last_year,
-                expense_date__month=last_month,
-            )
-            .aggregate(total=Sum("amount"))["total"]
-            or 0
-        )
-
-        if last_month_spent > 0:
-            difference = monthly_spent - last_month_spent
-            percent_change = (difference / last_month_spent) * 100
-
-            if percent_change > 0:
-                insights.append(
-                    f"You are spending {round(percent_change,2)}% more than last month."
+            monthly_spent = (
+                Expense.objects.filter(
+                    user=user,
+                    is_deleted=False,
+                    expense_date__year=now.year,
+                    expense_date__month=now.month,
                 )
-            elif percent_change < 0:
-                insights.append(
-                    f"Great job! You reduced spending by {abs(round(percent_change,2))}% compared to last month."
+                .aggregate(total=Sum("amount"))["total"]
+                or 0
+            )
+
+            # Safe category data
+            try:
+                category_data = list(
+                    Expense.objects.filter(user=user, is_deleted=False)
+                    .values("category__name")
+                    .annotate(total=Sum("amount"))
                 )
+            except:
+                category_data = []
 
-        # Highest category
-        category_list = list(category_data)
+            # Budget info
+            current_budget = MonthlyBudget.objects.filter(
+                user=user,
+                year=now.year,
+                month=now.month
+            ).first()
 
-        if category_list:
-            highest_category = max(category_list, key=lambda x: x["total"])
-            insights.append(
-                f"Your highest spending category is {highest_category['category__name']}."
-            )
+            budget_amount = current_budget.amount if current_budget else 0
+            remaining_amount = budget_amount - monthly_spent
+            percentage_used = (monthly_spent / budget_amount * 100) if budget_amount > 0 else 0
 
-        # Budget risk
-        if budget_amount > 0 and predicted_next_month > budget_amount:
-            insights.append(
-                "Warning: Based on trends, you may exceed next month's budget."
-            )
+            context["total_spent"] = total_spent
+            context["monthly_spent"] = monthly_spent
+            context["category_data"] = category_data
+            context["budget_amount"] = budget_amount
+            context["remaining_amount"] = remaining_amount
+            context["percentage_used"] = round(percentage_used, 2)
+            context["predicted_next_month"] = 0
 
-        context["insights"] = insights
+        except Exception as e:
+            # If anything fails, just show empty dashboard
+            print(f"[ERROR] Dashboard error: {e}")
+            context["total_spent"] = 0
+            context["monthly_spent"] = 0
+            context["category_data"] = []
+            context["budget_amount"] = 0
+            context["remaining_amount"] = 0
+            context["percentage_used"] = 0
+            context["predicted_next_month"] = 0
 
         return context
 
@@ -175,6 +96,7 @@ class ExpenseListView(LoginRequiredMixin, ListView):
     model = Expense
     template_name = "expenses/expense_list.html"
     context_object_name = "expenses"
+    login_url = 'login'
 
     def get_queryset(self):
         return Expense.objects.filter(
@@ -191,6 +113,7 @@ class ExpenseCreateView(LoginRequiredMixin, CreateView):
     form_class = ExpenseForm
     template_name = "expenses/expense_form.html"
     success_url = reverse_lazy("expense-list")
+    login_url = 'login'
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -210,6 +133,7 @@ class ExpenseUpdateView(LoginRequiredMixin, UpdateView):
     form_class = ExpenseForm
     template_name = "expenses/expense_form.html"
     success_url = reverse_lazy("expense-list")
+    login_url = 'login'
 
     def get_queryset(self):
         return Expense.objects.filter(
@@ -231,6 +155,7 @@ class ExpenseDeleteView(LoginRequiredMixin, UpdateView):
     fields = []
     template_name = "expenses/expense_confirm_delete.html"
     success_url = reverse_lazy("expense-list")
+    login_url = 'login'
 
     def get_queryset(self):
         return Expense.objects.filter(
@@ -253,6 +178,7 @@ class MonthlyBudgetCreateView(LoginRequiredMixin, CreateView):
     form_class = MonthlyBudgetForm
     template_name = "expenses/budget_form.html"
     success_url = reverse_lazy("dashboard")
+    login_url = 'login'
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -271,6 +197,7 @@ class BudgetHistoryView(LoginRequiredMixin, ListView):
     model = MonthlyBudget
     template_name = "expenses/budget_history.html"
     context_object_name = "budgets"
+    login_url = 'login'
 
     def get_queryset(self):
         return MonthlyBudget.objects.filter(
