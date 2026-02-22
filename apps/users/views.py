@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
-from django.views.generic import CreateView
-from django.contrib.auth import login, authenticate
+from django.views.generic import CreateView, View
+from django.contrib.auth import login, authenticate, logout
 from django.urls import reverse_lazy
 from .forms import SignUpForm
 
@@ -24,3 +24,17 @@ class SignUpView(CreateView):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Create Account'
         return context
+
+
+class LogoutView(View):
+    """Custom logout view."""
+    
+    def post(self, request):
+        """Handle POST logout request."""
+        logout(request)
+        return redirect('login')
+    
+    def get(self, request):
+        """Handle GET logout request."""
+        logout(request)
+        return redirect('login')

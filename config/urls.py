@@ -25,13 +25,13 @@ urlpatterns = [
 
     # Authentication
     path("login/", auth_views.LoginView.as_view(authentication_form=EmailAuthenticationForm), name="login"),
-    path("logout/", auth_views.LogoutView.as_view(next_page="login"), name="logout"),
     
-    # User registration
+    # User registration and logout (custom view)
     path("auth/", include("apps.users.urls")),
 
-    # Redirect root to dashboard (or login if not authenticated)
+    # Redirect root to login
     path("", RedirectView.as_view(url="login/", permanent=False), name="home"),
     
+    # Expenses
     path("", include("apps.expenses.urls")),
 ]
