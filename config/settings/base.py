@@ -103,21 +103,31 @@ DATABASE_URL = os.environ.get("DATABASE_URL")
 print(f"[DEBUG] DATABASE_URL present: {bool(DATABASE_URL)}")
 if DATABASE_URL:
     print(f"[DEBUG] DATABASE_URL starts with: {DATABASE_URL[:20]}...")
+    print(f"[DEBUG] DATABASE_URL full length: {len(DATABASE_URL)}")
 
 if DATABASE_URL:
     # Parse and use the PostgreSQL URL directly
     try:
+        db_config = dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+        
+        # Debug: Print what was parsed
+        print(f"[DEBUG] Parsed DB Engine: {db_config.get('ENGINE')}")
+        print(f"[DEBUG] Parsed DB Host: {db_config.get('HOST')}")
+        print(f"[DEBUG] Parsed DB Port: {db_config.get('PORT')}")
+        print(f"[DEBUG] Parsed DB Name: {db_config.get('NAME')}")
+        
         DATABASES = {
-            "default": dj_database_url.config(
-                default=DATABASE_URL,
-                conn_max_age=600,
-                conn_health_checks=True,
-                ssl_require=False,
-            )
+            "default": db_config
         }
         print("[DEBUG] ✓ Using PostgreSQL from DATABASE_URL")
     except Exception as e:
         print(f"[DEBUG] ✗ Error parsing DATABASE_URL: {e}")
+        import traceback
+        traceback.print_exc()
         # Fallback to SQLite
         DATABASES = {
             "default": {
