@@ -1,56 +1,96 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h3 class="mb-4">Budget History</h3>
-
-<a href="{% url 'dashboard' %}" class="btn btn-secondary mb-3">
-    Back to Dashboard
-</a>
-
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Month</th>
-            <th>Budget</th>
-            <th>Spent</th>
-            <th>Remaining</th>
-            <th>Status</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for item in budget_data %}
-        <tr>
-            <td>{{ item.month }}/{{ item.year }}</td>
-            <td>₹ {{ item.budget_amount }}</td>
-            <td>₹ {{ item.spent }}</td>
-            <td>₹ {{ item.remaining }}</td>
-            <td>
-                {% if item.exceeded %}
-                    <span class="badge bg-danger">Exceeded</span>
-                {% else %}
-                    <span class="badge bg-success">Within Budget</span>
-                {% endif %}
-            </td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="5">No budgets found.</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-
-<div class="card p-4 mt-5">
-    <h5>Budget vs Spending Trend</h5>
-    <canvas id="budgetTrendChart"></canvas>
+<div class="page-header">
+    <div>
+        <h1 class="page-title">
+            <i class="fas fa-history me-2"></i>Budget History
+        </h1>
+        <p class="page-subtitle">View your past budget performance and trends</p>
+    </div>
+    <a href="{% url 'dashboard' %}" class="btn btn-primary btn-lg">
+        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+    </a>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+{% if budget_data %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-table me-2"></i>Monthly Budget Overview
+        </div>
+        <div class="card-body">
+            <div style="overflow-x: auto;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-calendar me-2"></i>Month</th>
+                            <th><i class="fas fa-wallet me-2"></i>Budget</th>
+                            <th><i class="fas fa-credit-card me-2"></i>Spent</th>
+                            <th><i class="fas fa-plus-circle me-2"></i>Remaining</th>
+                            <th><i class="fas fa-check-circle me-2"></i>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in budget_data %}
+                        <tr>
+                            <td>
+                                <strong>{{ item.month|date:"F" }} {{ item.year }}</strong>
+                            </td>
+                            <td>
+                                <span style="color: #6366f1; font-weight: 600;">₹ {{ item.budget_amount }}</span>
+                            </td>
+                            <td>
+                                <span style="color: #ef4444; font-weight: 600;">₹ {{ item.spent }}</span>
+                            </td>
+                            <td>
+                                <span style="color: #10b981; font-weight: 600;">₹ {{ item.remaining }}</span>
+                            </td>
+                            <td>
+                                {% if item.exceeded %}
+                                    <span class="badge badge-danger">
+                                        <i class="fas fa-exclamation-circle me-1"></i>Exceeded
+                                    </span>
+                                {% else %}
+                                    <span class="badge badge-success">
+                                        <i class="fas fa-check me-1"></i>Within Budget
+                                    </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-chart-line me-2"></i>Budget vs Spending Trend
+        </div>
+        <div class="card-body">
+            <canvas id="budgetTrendChart" style="max-height: 400px;"></canvas>
+        </div>
+    </div>
+{% else %}
+    <div style="text-align: center; padding: 3rem 1rem;">
+        <i class="fas fa-inbox" style="font-size: 3.5rem; color: #d1d5db; margin-bottom: 1rem; display: block;"></i>
+        <h3 style="color: #6b7280; margin-bottom: 0.5rem;">No budget history yet</h3>
+        <p style="color: #9ca3af; margin-bottom: 1.5rem;">Start by setting a monthly budget to see your history here</p>
+        <a href="{% url 'budget-add' %}" class="btn btn-primary btn-lg">
+            <i class="fas fa-plus me-2"></i>Create Your First Budget
+        </a>
+    </div>
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
 <script>
     const months = {{ chart_months|safe }};
     const budgetValues = {{ chart_budget|safe }};
     const spentValues = {{ chart_spent|safe }};
 
-    new Chart(document.getElementById("budgetTrendChart"), {
+    const ctx = document.getElementById("budgetTrendChart").getContext('2d');
+    new Chart(ctx, {
         type: "line",
         data: {
             labels: months,
@@ -58,17 +98,61 @@
                 {
                     label: "Budget",
                     data: budgetValues,
-                    borderWidth: 2,
-                    tension: 0.3
+                    borderColor: "#6366f1",
+                    backgroundColor: "rgba(99, 102, 241, 0.1)",
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 6,
+                    pointBackgroundColor: "#6366f1",
+                    pointBorderColor: "#fff",
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 8
                 },
                 {
                     label: "Spent",
                     data: spentValues,
-                    borderWidth: 2,
-                    tension: 0.3
+                    borderColor: "#ef4444",
+                    backgroundColor: "rgba(239, 68, 68, 0.1)",
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 6,
+                    pointBackgroundColor: "#ef4444",
+                    pointBorderColor: "#fff",
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 8
                 }
             ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        font: {
+                            size: 14,
+                            weight: '600'
+                        },
+                        padding: 20,
+                        usePointStyle: true,
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '₹ ' + value;
+                        }
+                    }
+                }
+            }
         }
     });
 </script>
+
 {% endblock %}

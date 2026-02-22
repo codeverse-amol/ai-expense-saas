@@ -2,39 +2,234 @@
 
 {% block content %}
 
-<div class="d-flex justify-content-between mb-3">
-    <h3>Your Expenses</h3>
-    <a href="{% url 'expense-add' %}" class="btn btn-success">Add Expense</a>
+<div class="page-header">
+    <div>
+        <h1 class="page-title">
+            <i class="fas fa-receipt me-2"></i>Your Expenses
+        </h1>
+        <p class="page-subtitle">Manage and track all your expenses</p>
+    </div>
+    <a href="{% url 'expense-add' %}" class="btn btn-success btn-lg">
+        <i class="fas fa-plus me-2"></i>Add New Expense
+    </a>
 </div>
 
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Title</th>
-            <th>Amount</th>
-            <th>Category</th>
-            <th>Date</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
+<!-- Filter Panel -->
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="fas fa-filter me-2"></i>Search & Filter
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <!-- Search -->
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label">
+                    <i class="fas fa-search me-1"></i>Search
+                </label>
+                <input type="text" name="search" class="form-control" 
+                    placeholder="Title or notes..." 
+                    value="{{ request.GET.search }}">
+            </div>
+            
+            <!-- Category -->
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label">
+                    <i class="fas fa-folder me-1"></i>Category
+                </label>
+                <select name="category" class="form-select">
+                    <option value="">All Categories</option>
+                    {% for category in filter_form.category.field.queryset %}
+                        <option value="{{ category.id }}" 
+                            {% if request.GET.category|stringformat:"s" == category.id|stringformat:"s" %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <!-- Min Amount -->
+            <div class="col-lg-2 col-md-6">
+                <label class="form-label">
+                    <i class="fas fa-rupee-sign me-1"></i>Min Amount
+                </label>
+                <input type="number" name="min_amount" class="form-control" 
+                    placeholder="0" step="0.01"
+                    value="{{ request.GET.min_amount }}">
+            </div>
+            
+            <!-- Max Amount -->
+            <div class="col-lg-2 col-md-6">
+                <label class="form-label">
+                    <i class="fas fa-rupee-sign me-1"></i>Max Amount
+                </label>
+                <input type="number" name="max_amount" class="form-control" 
+                    placeholder="0" step="0.01"
+                    value="{{ request.GET.max_amount }}">
+            </div>
+            
+            <!-- Start Date -->
+            <div class="col-lg-2 col-md-6">
+                <label class="form-label">
+                    <i class="fas fa-calendar-alt me-1"></i>Start Date
+                </label>
+                <input type="date" name="start_date" class="form-control" 
+                    value="{{ request.GET.start_date }}">
+            </div>
+            
+            <!-- End Date -->
+            <div class="col-lg-2 col-md-6">
+                <label class="form-label">
+                    <i class="fas fa-calendar-alt me-1"></i>End Date
+                </label>
+                <input type="date" name="end_date" class="form-control" 
+                    value="{{ request.GET.end_date }}">
+            </div>
+            
+            <!-- Sort By -->
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label">
+                    <i class="fas fa-sort me-1"></i>Sort By
+                </label>
+                <select name="sort_by" class="form-select">
+                    <option value="-expense_date" {% if request.GET.sort_by == "-expense_date" or not request.GET.sort_by %}selected{% endif %}>Newest First</option>
+                    <option value="expense_date" {% if request.GET.sort_by == "expense_date" %}selected{% endif %}>Oldest First</option>
+                    <option value="-amount" {% if request.GET.sort_by == "-amount" %}selected{% endif %}>Highest Amount</option>
+                    <option value="amount" {% if request.GET.sort_by == "amount" %}selected{% endif %}>Lowest Amount</option>
+                    <option value="title" {% if request.GET.sort_by == "title" %}selected{% endif %}>Title (A-Z)</option>
+                    <option value="-title" {% if request.GET.sort_by == "-title" %}selected{% endif %}>Title (Z-A)</option>
+                </select>
+            </div>
+            
+            <!-- Buttons -->
+            <div class="col-12">
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search me-2"></i>Apply Filters
+                    </button>
+                    <a href="{% url 'expense-list' %}" class="btn btn-secondary">
+                        <i class="fas fa-redo me-2"></i>Reset
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Statistics -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">Total Expenses</div>
+        <div class="stat-value">{{ total_expenses }}</div>
+        <small style="color: #6b7280; margin-top: 0.5rem; display: block;">
+            <i class="fas fa-list me-1"></i>All time count
+        </small>
+    </div>
+
+    <div class="stat-card success">
+        <div class="stat-label">Filtered Results</div>
+        <div class="stat-value">{{ filtered_expenses }}</div>
+        <small style="color: #6b7280; margin-top: 0.5rem; display: block;">
+            <i class="fas fa-filter me-1"></i>Matching filters
+        </small>
+    </div>
+
+    <div class="stat-card danger">
+        <div class="stat-label">Total Amount</div>
+        <div class="stat-value">₹ {{ total_amount }}</div>
+        <small style="color: #6b7280; margin-top: 0.5rem; display: block;">
+            <i class="fas fa-rupee-sign me-1"></i>Filtered total
+        </small>
+    </div>
+</div>
+
+<!-- Expenses List -->
+{% if expenses %}
+    <div style="display: flex; flex-direction: column; gap: 1rem;">
         {% for expense in expenses %}
-        <tr>
-            <td>{{ expense.title }}</td>
-            <td>₹ {{ expense.amount }}</td>
-            <td>{{ expense.category.name }}</td>
-            <td>{{ expense.expense_date }}</td>
-            <td>
-                <a href="{% url 'expense-edit' expense.id %}" class="btn btn-sm btn-primary">Edit</a>
-                <a href="{% url 'expense-delete' expense.id %}" class="btn btn-sm btn-danger">Delete</a>
-            </td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="5">No expenses yet.</td>
-        </tr>
+        <div class="expense-item fade-in">
+            <div class="expense-category">
+                <i class="fas fa-tag"></i>
+            </div>
+            <div class="expense-details">
+                <div class="expense-name">{{ expense.title }}</div>
+                <div class="expense-meta">
+                    <i class="fas fa-folder me-1"></i>{{ expense.category.name }} | 
+                    <i class="fas fa-calendar me-1"></i>{{ expense.expense_date|date:"M d, Y" }}
+                    {% if expense.notes %}<br><i class="fas fa-sticky-note me-1"></i><span style="color: #9ca3af;">{{ expense.notes|truncatewords:10 }}</span>{% endif %}
+                </div>
+            </div>
+            <div class="expense-amount">₹ {{ expense.amount }}</div>
+            <div class="expense-actions">
+                <a href="{% url 'expense-edit' expense.id %}" class="btn btn-sm btn-primary" title="Edit expense">
+                    <i class="fas fa-edit"></i>
+                </a>
+                <a href="{% url 'expense-delete' expense.id %}" class="btn btn-sm btn-danger" title="Delete expense">
+                    <i class="fas fa-trash"></i>
+                </a>
+            </div>
+        </div>
         {% endfor %}
-    </tbody>
-</table>
+    </div>
+    
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav aria-label="Page navigation" style="margin-top: 2rem;">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% if query_string %}&{{ query_string }}{% endif %}">
+                        <i class="fas fa-angle-double-left"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query_string %}&{{ query_string }}{% endif %}">
+                        <i class="fas fa-angle-left"></i>
+                    </a>
+                </li>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% if query_string %}&{{ query_string }}{% endif %}">{{ num }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query_string %}&{{ query_string }}{% endif %}">
+                        <i class="fas fa-angle-right"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if query_string %}&{{ query_string }}{% endif %}">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+{% else %}
+    <div style="text-align: center; padding: 3rem 1rem;">
+        <i class="fas fa-search" style="font-size: 3.5rem; color: #d1d5db; margin-bottom: 1rem; display: block;"></i>
+        <h3 style="color: #6b7280; margin-bottom: 0.5rem;">No expenses found</h3>
+        <p style="color: #9ca3af; margin-bottom: 1.5rem;">
+            {% if request.GET %}
+                Try adjusting your filters or <a href="{% url 'expense-list' %}" style="color: #6366f1; font-weight: 600;">reset them</a>
+            {% else %}
+                Start tracking your expenses to see them here
+            {% endif %}
+        </p>
+        <a href="{% url 'expense-add' %}" class="btn btn-primary btn-lg">
+            <i class="fas fa-plus me-2"></i>Add Your First Expense
+        </a>
+    </div>
+{% endif %}
 
 {% endblock %}

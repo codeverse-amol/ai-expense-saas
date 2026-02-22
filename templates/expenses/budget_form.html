@@ -2,21 +2,73 @@
 
 {% block content %}
 
-<h3>Add Monthly Budget</h3>
-
-<div class="col-md-4">
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-
-        <button type="submit" class="btn btn-success">
-            Save Budget
-        </button>
-
-        <a href="{% url 'dashboard' %}" class="btn btn-secondary">
-            Cancel
-        </a>
-    </form>
+<div class="page-header">
+    <div>
+        <h1 class="page-title">
+            <i class="fas fa-calculator me-2"></i>Set Monthly Budget
+        </h1>
+        <p class="page-subtitle">Define your spending limit for this month</p>
+    </div>
 </div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-wallet me-2"></i>Budget Configuration
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {% for field in form %}
+                        <div class="form-group">
+                            <label for="id_{{ field.name }}" class="form-label">
+                                <i class="fas fa-tag me-1"></i>{{ field.label }}
+                            </label>
+                            {{ field }}
+                            {% if field.errors %}
+                                <div style="color: #ef4444; font-size: 0.875rem; margin-top: 0.5rem;">
+                                    {% for error in field.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                            {% if field.help_text %}
+                                <small style="color: #6b7280; display: block; margin-top: 0.5rem;">
+                                    {{ field.help_text|safe }}
+                                </small>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+
+                    <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                        <button type="submit" class="btn btn-success flex-fill">
+                            <i class="fas fa-check me-2"></i>Save Budget
+                        </button>
+                        <a href="{% url 'dashboard' %}" class="btn btn-secondary flex-fill">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    input, select {
+        width: 100%;
+        border: 2px solid #e5e7eb;
+        border-radius: 0.5rem;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        font-family: inherit;
+    }
+    input:focus, select:focus {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        outline: none;
+    }
+</style>
 
 {% endblock %}

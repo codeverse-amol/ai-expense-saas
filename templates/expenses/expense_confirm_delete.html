@@ -1,14 +1,53 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h3>Delete Expense</h3>
 
-<p>Are you sure you want to delete "{{ object.title }}"?</p>
+<div class="page-header">
+    <div>
+        <h1 class="page-title">
+            <i class="fas fa-trash-alt me-2"></i>Delete Expense
+        </h1>
+        <p class="page-subtitle">This action cannot be undone</p>
+    </div>
+</div>
 
-<form method="post">
-    {% csrf_token %}
-    <button class="btn btn-danger">Yes, Delete</button>
-    <a href="{% url 'expense-list' %}" class="btn btn-secondary">Cancel</a>
-</form>
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card border-danger">
+            <div class="card-header bg-danger">
+                <i class="fas fa-exclamation-triangle me-2"></i>Confirm Deletion
+            </div>
+            <div class="card-body">
+                <p style="font-size: 1.1rem; margin-bottom: 1rem;">
+                    Are you sure you want to delete this expense?
+                </p>
+                <div style="background: #fef2f2; border-left: 4px solid #ef4444; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem;">
+                    <strong style="color: #7f1d1d;">Expense Details:</strong>
+                    <div style="color: #7f1d1d; margin-top: 0.5rem;">
+                        <i class="fas fa-heading me-2"></i><strong>{{ object.title }}</strong><br>
+                        <i class="fas fa-rupee-sign me-2"></i>Amount: <strong>₹ {{ object.amount }}</strong><br>
+                        <i class="fas fa-calendar me-2"></i>Date: <strong>{{ object.expense_date|date:"M d, Y" }}</strong>
+                    </div>
+                </div>
+                
+                <p style="color: #6b7280; font-size: 0.95rem; margin-bottom: 2rem;">
+                    <i class="fas fa-info-circle me-2"></i>This action will permanently delete this expense record from your account.
+                </p>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div style="display: flex; gap: 1rem;">
+                        <button type="submit" class="btn btn-danger flex-fill">
+                            <i class="fas fa-check me-2"></i>Yes, Delete
+                        </button>
+                        <a href="{% url 'expense-list' %}" class="btn btn-secondary flex-fill">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
 {% endblock %}

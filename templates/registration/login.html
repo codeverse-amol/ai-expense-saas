@@ -1,71 +1,86 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="row justify-content-center" style="margin-top: 50px;">
-    <div class="col-md-4">
-        <div class="card shadow">
-            <div class="card-body">
-                <h3 class="card-title text-center mb-4">Login</h3>
+<div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);">
+    <div style="background: white; border-radius: 1.5rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); padding: 3rem; width: 100%; max-width: 450px;">
+        
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <i class="fas fa-wallet" style="font-size: 3rem; color: #4f46e5; margin-bottom: 1rem;"></i>
+            <h2 style="color: #4f46e5; font-weight: 700; margin: 0;">Welcome Back</h2>
+            <p style="color: #6b7280; margin-top: 0.5rem; font-size: 0.95rem;">Sign in to manage your expenses</p>
+        </div>
 
-                {# Display any non-field errors #}
-                {% if form.non_field_errors %}
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <strong>Login Failed!</strong>
-                        {% for error in form.non_field_errors %}
-                            <div>{{ error }}</div>
-                        {% endfor %}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <strong>Login Failed!</strong>
+                {% for error in form.non_field_errors %}
+                    <div>{{ error }}</div>
+                {% endfor %}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                <label for="id_username" class="form-label">
+                    <i class="fas fa-envelope me-2"></i>Email Address
+                </label>
+                {{ form.username }}
+                {% if form.username.errors %}
+                    <div style="color: #ef4444; font-size: 0.875rem; margin-top: 0.5rem;">
+                        {% for error in form.username.errors %}{{ error }}{% endfor %}
                     </div>
                 {% endif %}
-
-                <form method="post">
-                    {% csrf_token %}
-                    
-                    {# Username/Email Field #}
-                    <div class="mb-3">
-                        <label for="id_username" class="form-label">Email</label>
-                        {{ form.username }}
-                        {% if form.username.errors %}
-                            <div class="text-danger small mt-1">
-                                {% for error in form.username.errors %}{{ error }}{% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
-
-                    {# Password Field #}
-                    <div class="mb-3">
-                        <label for="id_password" class="form-label">Password</label>
-                        {{ form.password }}
-                        {% if form.password.errors %}
-                            <div class="text-danger small mt-1">
-                                {% for error in form.password.errors %}{{ error }}{% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
-
-                    <button type="submit" class="btn btn-primary w-100 mb-3">Login</button>
-                </form>
-
-                <hr>
-                <p class="text-center text-muted small">
-                    Don't have an account? <a href="{% url 'signup' %}">Sign up here</a>
-                </p>
             </div>
+
+            <div class="mb-3">
+                <label for="id_password" class="form-label">
+                    <i class="fas fa-lock me-2"></i>Password
+                </label>
+                {{ form.password }}
+                {% if form.password.errors %}
+                    <div style="color: #ef4444; font-size: 0.875rem; margin-top: 0.5rem;">
+                        {% for error in form.password.errors %}{{ error }}{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 mb-3" style="padding: 0.75rem; font-weight: 600; text-transform: uppercase;">
+                <i class="fas fa-sign-in-alt me-2"></i>Sign In
+            </button>
+        </form>
+
+        <div style="text-align: center; margin: 2rem 0; position: relative;">
+            <div style="position: absolute; top: 50%; left: 0; right: 0; height: 1px; background-color: #e5e7eb;"></div>
+            <span style="background: white; padding: 0 1rem; color: #6b7280; font-size: 0.85rem; position: relative;">OR</span>
         </div>
+
+        <p style="text-align: center; color: #6b7280; margin-top: 1.5rem; margin-bottom: 0;">
+            Don't have an account? 
+            <a href="{% url 'signup' %}" style="color: #6366f1; text-decoration: none; font-weight: 600;">
+                Sign up here <i class="fas fa-arrow-right ms-1"></i>
+            </a>
+        </p>
     </div>
 </div>
 
 <style>
     #id_username, #id_password {
         width: 100%;
-        padding: 0.5rem;
-        border: 1px solid #ccc;
-        border-radius: 0.25rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 0.5rem;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        font-family: inherit;
     }
     #id_username:focus, #id_password:focus {
-        border-color: #80bdff;
-        outline: 0;
-        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        outline: none;
     }
 </style>
 {% endblock %}

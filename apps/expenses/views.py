@@ -4,12 +4,12 @@ from django.views.generic import ListView, CreateView, UpdateView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.shortcuts import redirect
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from django.db.models.functions import TruncMonth
 from django.utils import timezone
 
 from .models import Expense, MonthlyBudget
-from .forms import ExpenseForm
+from .forms import ExpenseForm, ExpenseFilterForm
 from .budget_forms import MonthlyBudgetForm
 
 import json
@@ -97,12 +97,89 @@ class ExpenseListView(LoginRequiredMixin, ListView):
     template_name = "expenses/expense_list.html"
     context_object_name = "expenses"
     login_url = 'login'
+    paginate_by = 20
 
     def get_queryset(self):
-        return Expense.objects.filter(
+        queryset = Expense.objects.filter(
             user=self.request.user,
             is_deleted=False
         )
+        
+        # Get filter parameters from GET request
+        search = self.request.GET.get('search', '').strip()
+        category_id = self.request.GET.get('category', '').strip()
+        min_amount = self.request.GET.get('min_amount', '').strip()
+        max_amount = self.request.GET.get('max_amount', '').strip()
+        start_date = self.request.GET.get('start_date', '').strip()
+        end_date = self.request.GET.get('end_date', '').strip()
+        sort_by = self.request.GET.get('sort_by', '-expense_date').strip()
+        
+        # Apply search filter (search in title and notes)
+        if search:
+            queryset = queryset.filter(
+                Q(title__icontains=search) | Q(notes__icontains=search)
+            )
+        
+        # Apply category filter
+        if category_id:
+            queryset = queryset.filter(category_id=category_id)
+        
+        # Apply amount range filter
+        if min_amount:
+            try:
+                queryset = queryset.filter(amount__gte=float(min_amount))
+            except (ValueError, TypeError):
+                pass
+        
+        if max_amount:
+            try:
+                queryset = queryset.filter(amount__lte=float(max_amount))
+            except (ValueError, TypeError):
+                pass
+        
+        # Apply date range filter
+        if start_date:
+            try:
+                queryset = queryset.filter(expense_date__gte=start_date)
+            except (ValueError, TypeError):
+                pass
+        
+        if end_date:
+            try:
+                queryset = queryset.filter(expense_date__lte=end_date)
+            except (ValueError, TypeError):
+                pass
+        
+        # Apply sorting
+        if sort_by in ['-expense_date', 'expense_date', '-amount', 'amount', 'title', '-title']:
+            queryset = queryset.order_by(sort_by)
+        
+        return queryset
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Create and populate the filter form
+        filter_form = ExpenseFilterForm(user=self.request.user, data=self.request.GET)
+        context['filter_form'] = filter_form
+        
+        # Add query string for maintaining filters in pagination
+        context['query_string'] = self.request.GET.urlencode()
+        
+        # Count statistics
+        total_expenses = Expense.objects.filter(
+            user=self.request.user,
+            is_deleted=False
+        ).count()
+        
+        filtered_expenses = self.get_queryset().count()
+        total_amount = self.get_queryset().aggregate(Sum('amount'))['amount__sum'] or 0
+        
+        context['total_expenses'] = total_expenses
+        context['filtered_expenses'] = filtered_expenses
+        context['total_amount'] = total_amount
+        
+        return context
 
 
 # ======================================
