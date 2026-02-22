@@ -101,6 +101,9 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 
                 total_category_budget += cat_budget.amount
 
+            # Calculate unallocated budget
+            unallocated_budget = budget_amount - total_category_budget
+
             context["total_spent"] = total_spent
             context["monthly_spent"] = monthly_spent
             context["category_data"] = category_data
@@ -110,6 +113,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             context["predicted_next_month"] = 0
             context["category_budget_data"] = category_budget_data
             context["total_category_budget"] = total_category_budget
+            context["unallocated_budget"] = unallocated_budget
             context["current_month"] = now.month
             context["current_year"] = now.year
 
@@ -356,6 +360,7 @@ class BudgetHistoryView(LoginRequiredMixin, ListView):
             remaining = budget.amount - monthly_spent
 
             budget_data.append({
+                "id": budget.id,
                 "year": budget.year,
                 "month": budget.month,
                 "budget_amount": budget.amount,
@@ -379,6 +384,28 @@ class BudgetHistoryView(LoginRequiredMixin, ListView):
         context["chart_budget"] = json.dumps(budget_values[::-1])
         context["chart_spent"] = json.dumps(spent_values[::-1])
         return context
+
+
+class MonthlyBudgetDeleteView(LoginRequiredMixin, UpdateView):
+    """Delete a monthly budget"""
+    model = MonthlyBudget
+    template_name = "expenses/budget_confirm_delete.html"
+    success_url = reverse_lazy("budget-history")
+    login_url = 'login'
+
+    def get_queryset(self):
+        return MonthlyBudget.objects.filter(user=self.request.user)
+
+    def post(self, request, *args, **kwargs):
+        budget: MonthlyBudget = cast(MonthlyBudget, self.get_object())
+        # Also delete associated category budgets for this month
+        CategoryBudget.objects.filter(
+            user=request.user,
+            year=budget.year,
+            month=budget.month
+        ).delete()
+        budget.delete()
+        return redirect("budget-history")
 
 
 # ======================================

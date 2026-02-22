@@ -28,6 +28,7 @@
                             <th><i class="fas fa-credit-card me-2"></i>Spent</th>
                             <th><i class="fas fa-plus-circle me-2"></i>Remaining</th>
                             <th><i class="fas fa-check-circle me-2"></i>Status</th>
+                            <th><i class="fas fa-cog me-2"></i>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -55,6 +56,11 @@
                                         <i class="fas fa-check me-1"></i>Within Budget
                                     </span>
                                 {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'budget-delete' item.id %}" class="btn btn-sm btn-outline-danger">
+                                    <i class="fas fa-trash"></i> Delete
+                                </a>
                             </td>
                         </tr>
                         {% endfor %}

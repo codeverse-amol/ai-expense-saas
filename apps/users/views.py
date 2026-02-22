@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.views.generic import CreateView, View
 from django.contrib.auth import login, authenticate, logout
+from django.contrib import messages
 from django.urls import reverse_lazy
 from .forms import SignUpForm, EmailAuthenticationForm
 
@@ -39,7 +40,7 @@ class SignUpView(CreateView):
     """View for user registration."""
     form_class = SignUpForm
     template_name = "registration/signup.html"
-    success_url = reverse_lazy("dashboard")
+    success_url = reverse_lazy("login")
     
     def dispatch(self, request, *args, **kwargs):
         """If user is already authenticated, redirect to dashboard."""
@@ -48,11 +49,14 @@ class SignUpView(CreateView):
         return super().dispatch(request, *args, **kwargs)
     
     def form_valid(self, form):
-        """Save the user and log them in."""
+        """Save the user and show success message."""
         user = form.save()
         
-        # Authenticate and login the user
-        login(self.request, user, backend='apps.users.backends.EmailAuthenticationBackend')
+        # Add success message
+        messages.success(
+            self.request,
+            'Account created successfully! Please login with your credentials.'
+        )
         
         return redirect(self.success_url)
     

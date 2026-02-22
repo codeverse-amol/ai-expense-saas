@@ -125,7 +125,7 @@
             <strong>Total Category Budget:</strong> ₹{{ total_category_budget|floatformat:2 }}
             {% if budget_amount > 0 %}
             | <strong>Monthly Budget:</strong> ₹{{ budget_amount|floatformat:2 }}
-            | <strong>Unallocated:</strong> ₹{{ budget_amount|add:"-"|add:total_category_budget|floatformat:2 }}
+            | <strong>Unallocated:</strong> ₹{{ unallocated_budget|floatformat:2 }}
             {% endif %}
         </div>
         {% endif %}
