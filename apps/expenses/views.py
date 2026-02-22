@@ -638,8 +638,8 @@ class CategoryListView(LoginRequiredMixin, ListView):
         category_expenses = {}
         expenses = Expense.objects.filter(
             user=user,
-            date__year=year,
-            date__month=month,
+            expense_date__year=year,
+            expense_date__month=month,
             is_deleted=False
         )
         for expense in expenses:
