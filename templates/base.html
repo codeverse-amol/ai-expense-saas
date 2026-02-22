@@ -7,9 +7,15 @@
 <body>
 
     <nav class="navbar navbar-dark bg-dark px-4">
-        <a class="navbar-brand text-white" href="{% url 'login' %}">
-            AI Expense Manager
-        </a>
+        {% if user.is_authenticated %}
+            <a class="navbar-brand text-white" href="{% url 'dashboard' %}">
+                AI Expense Manager
+            </a>
+        {% else %}
+            <a class="navbar-brand text-white" href="{% url 'signup' %}">
+                AI Expense Manager
+            </a>
+        {% endif %}
     
         <div>
             {% if user.is_authenticated %}

@@ -16,17 +16,16 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from django.contrib.auth import views as auth_views
 from django.views.generic import RedirectView
-from apps.users.forms import EmailAuthenticationForm
+from apps.users.views import CustomLoginView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
 
-    # Authentication
-    path("login/", auth_views.LoginView.as_view(authentication_form=EmailAuthenticationForm), name="login"),
+    # Authentication - Custom login view
+    path("login/", CustomLoginView.as_view(), name="login"),
     
-    # User registration and logout (custom view)
+    # User registration and logout (custom views)
     path("auth/", include("apps.users.urls")),
 
     # Redirect root to login
