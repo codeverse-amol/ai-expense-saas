@@ -2,6 +2,19 @@ from django import forms
 from .models import Expense, Category, MonthlyBudget
 
 
+class CategoryForm(forms.ModelForm):
+    """Form for creating and editing categories"""
+    class Meta:
+        model = Category
+        fields = ["name"]
+        widgets = {
+            "name": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Enter category name (e.g., Food, Transport, Bills)"
+            })
+        }
+
+
 class ExpenseForm(forms.ModelForm):
     class Meta:
         model = Expense
@@ -11,8 +24,12 @@ class ExpenseForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        kwargs.pop("user", None)  # just remove user safely
+        user = kwargs.pop("user", None)  # Get user from kwargs
         super().__init__(*args, **kwargs)
+        
+        # Filter category queryset to only show user's categories
+        if user:
+            self.fields['category'].queryset = Category.objects.filter(user=user)
 
 
 class ExpenseFilterForm(forms.Form):

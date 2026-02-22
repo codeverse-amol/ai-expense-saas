@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Categories{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-tags"></i> My Categories</h1>
+    <p class="text-muted">Manage your expense categories</p>
+</div>
+
+<div class="mb-4">
+    <a href="{% url 'category-add' %}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Add New Category
+    </a>
+    <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+{% if categories %}
+<div class="row">
+    {% for category in categories %}
+    <div class="col-md-4 col-lg-3 mb-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-tag text-primary"></i> {{ category.name }}
+                </h5>
+                <p class="text-muted small">
+                    Created: {{ category.created_at|date:"M d, Y" }}
+                </p>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'category-edit' category.id %}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
+                    <a href="{% url 'category-delete' category.id %}" class="btn btn-sm btn-outline-danger">
+                        <i class="fas fa-trash"></i> Delete
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info">
+    <i class="fas fa-info-circle"></i>
+    <strong>No categories yet!</strong> Create your first category to start organizing your expenses.
+    <br>
+    <small>Examples: Food, Transport, Bills, Entertainment, Shopping, etc.</small>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -41,6 +41,30 @@
             </button>
             
             <div class="collapse navbar-collapse" id="navbarNav">
+                {% if user.is_authenticated %}
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'dashboard' %}">
+                            <i class="fas fa-home"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'expense-list' %}">
+                            <i class="fas fa-list"></i> Expenses
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'category-list' %}">
+                            <i class="fas fa-tags"></i> Categories
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'budget-history' %}">
+                            <i class="fas fa-chart-line"></i> Budgets
+                        </a>
+                    </li>
+                </ul>
+                {% endif %}
                 <div class="ms-auto d-flex align-items-center gap-2">
                     {% if user.is_authenticated %}
                         <span class="navbar-welcome">

@@ -7,6 +7,10 @@ from .views import (
     ExpenseDeleteView,
     MonthlyBudgetCreateView,
     BudgetHistoryView,
+    CategoryListView,
+    CategoryCreateView,
+    CategoryUpdateView,
+    CategoryDeleteView,
 )
 
 urlpatterns = [
@@ -17,4 +21,8 @@ urlpatterns = [
     path("delete/<uuid:pk>/", ExpenseDeleteView.as_view(), name="expense-delete"),
     path("budget/add/", MonthlyBudgetCreateView.as_view(), name="budget-add"),
     path("budgets/history/", BudgetHistoryView.as_view(), name="budget-history"),
+    path("categories/", CategoryListView.as_view(), name="category-list"),
+    path("categories/add/", CategoryCreateView.as_view(), name="category-add"),
+    path("categories/edit/<uuid:pk>/", CategoryUpdateView.as_view(), name="category-edit"),
+    path("categories/delete/<uuid:pk>/", CategoryDeleteView.as_view(), name="category-delete"),
 ]

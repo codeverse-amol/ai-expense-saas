@@ -8,8 +8,8 @@ from django.db.models import Sum, Q
 from django.db.models.functions import TruncMonth
 from django.utils import timezone
 
-from .models import Expense, MonthlyBudget
-from .forms import ExpenseForm, ExpenseFilterForm
+from .models import Expense, MonthlyBudget, Category
+from .forms import ExpenseForm, ExpenseFilterForm, CategoryForm
 from .budget_forms import MonthlyBudgetForm
 
 import json
@@ -326,3 +326,68 @@ class BudgetHistoryView(LoginRequiredMixin, ListView):
         context["chart_budget"] = json.dumps(budget_values[::-1])
         context["chart_spent"] = json.dumps(spent_values[::-1])
         return context
+
+
+# ======================================
+# CATEGORY MANAGEMENT
+# ======================================
+class CategoryListView(LoginRequiredMixin, ListView):
+    """List all categories for the current user"""
+    model = Category
+    template_name = "expenses/category_list.html"
+    context_object_name = "categories"
+    login_url = 'login'
+
+    def get_queryset(self):
+        return Category.objects.filter(user=self.request.user)
+
+
+class CategoryCreateView(LoginRequiredMixin, CreateView):
+    """Create a new category"""
+    model = Category
+    form_class = CategoryForm
+    template_name = "expenses/category_form.html"
+    success_url = reverse_lazy("category-list")
+    login_url = 'login'
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        return super().form_valid(form)
+
+
+class CategoryUpdateView(LoginRequiredMixin, UpdateView):
+    """Edit an existing category"""
+    model = Category
+    form_class = CategoryForm
+    template_name = "expenses/category_form.html"
+    success_url = reverse_lazy("category-list")
+    login_url = 'login'
+
+    def get_queryset(self):
+        return Category.objects.filter(user=self.request.user)
+
+
+class CategoryDeleteView(LoginRequiredMixin, UpdateView):
+    """Delete a category"""
+    model = Category
+    template_name = "expenses/category_confirm_delete.html"
+    success_url = reverse_lazy("category-list")
+    login_url = 'login'
+
+    def get_queryset(self):
+        return Category.objects.filter(user=self.request.user)
+
+    def post(self, request, *args, **kwargs):
+        category: Category = cast(Category, self.get_object())
+        # Check if category is being used by any expenses
+        expense_count = Expense.objects.filter(
+            category=category,
+            is_deleted=False
+        ).count()
+        
+        if expense_count > 0:
+            # Redirect back with error message (you can add messages framework)
+            return redirect("category-list")
+        
+        category.delete()
+        return redirect("category-list")
