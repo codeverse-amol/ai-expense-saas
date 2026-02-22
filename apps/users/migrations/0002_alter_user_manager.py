@@ -1,7 +1,11 @@
 # Generated migration to update User manager
 
 from django.db import migrations
-from apps.users.models import CustomUserManager
+
+
+def set_custom_manager(apps, schema_editor):
+    """No-op function, just updating the manager definition."""
+    pass
 
 
 class Migration(migrations.Migration):
@@ -11,10 +15,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterModelManagers(
-            name='User',
-            managers=[
-                ('objects', CustomUserManager()),
-            ],
-        ),
+        migrations.RunPython(set_custom_manager, migrations.RunPython.noop),
     ]
+
