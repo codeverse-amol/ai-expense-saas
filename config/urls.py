@@ -16,7 +16,6 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from django.views.generic import RedirectView
 from apps.users.views import LoginView
 
 urlpatterns = [
@@ -27,10 +26,7 @@ urlpatterns = [
     
     # User registration and logout (custom views)
     path("auth/", include("apps.users.urls")),
-
-    # Redirect root to login
-    path("", RedirectView.as_view(url="login/", permanent=False), name="home"),
     
-    # Expenses
+    # Expenses - handles root path (/) with protected dashboard
     path("", include("apps.expenses.urls")),
 ]
