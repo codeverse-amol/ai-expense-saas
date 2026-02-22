@@ -120,6 +120,11 @@ if DATABASE_URL:
         print(f"[DEBUG] Parsed DB Port: {db_config.get('PORT')}")
         print(f"[DEBUG] Parsed DB Name: {db_config.get('NAME')}")
         
+        # FIX: If PORT is empty, set it to 5432 (PostgreSQL default)
+        if not db_config.get('PORT'):
+            db_config['PORT'] = 5432
+            print(f"[DEBUG] ✓ Set PORT to default 5432")
+        
         DATABASES = {
             "default": db_config
         }
