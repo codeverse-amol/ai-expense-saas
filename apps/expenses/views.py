@@ -151,9 +151,10 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             
             for cat_budget in category_budgets:
                 # Calculate spent from prefetched data (no extra query!)
+                expenses_list = list(cat_budget.category.current_month_expenses)
                 spent = sum(
                     expense.amount 
-                    for expense in cat_budget.category.current_month_expenses
+                    for expense in expenses_list
                 )
                 
                 remaining = cat_budget.amount - spent
@@ -165,7 +166,8 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                     'spent': spent,
                     'remaining': remaining,
                     'percentage': round(percentage, 1),
-                    'status': 'danger' if percentage > 100 else ('warning' if percentage > 80 else 'success')
+                    'status': 'danger' if percentage > 100 else ('warning' if percentage > 80 else 'success'),
+                    'expenses': expenses_list  # Add expenses to show in dashboard
                 })
                 
                 total_category_budget += cat_budget.amount
