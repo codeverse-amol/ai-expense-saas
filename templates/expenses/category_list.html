@@ -31,10 +31,7 @@
                     Created: {{ category.created_at|date:"M d, Y" }}
                 </p>
                 <div class="d-grid gap-2">
-                    <a href="{% url 'expense-add' %}?category={{ category.id }}" class="btn btn-success btn-sm">
-                        <i class="fas fa-plus"></i> Add Expense
-                    </a>
-                    <div class="btn-group">
+                    <div class="btn-group w-100">
                         <a href="{% url 'category-edit' category.id %}" class="btn btn-sm btn-outline-primary">
                             <i class="fas fa-edit"></i> Edit
                         </a>
