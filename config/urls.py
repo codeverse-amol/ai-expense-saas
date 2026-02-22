@@ -26,8 +26,7 @@ urlpatterns = [
     # Authentication - Built-in LoginView with custom email form
     path("login/", auth_views.LoginView.as_view(
         authentication_form=EmailAuthenticationForm,
-        template_name='registration/login.html',
-        redirect_authenticated_user=True
+        template_name='registration/login.html'
     ), name="login"),
     
     # User registration and logout (custom views)
