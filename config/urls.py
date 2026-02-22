@@ -17,6 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
+from django.views.generic import RedirectView
 from apps.users.forms import EmailAuthenticationForm
 
 urlpatterns = [
@@ -25,6 +26,12 @@ urlpatterns = [
     # Authentication
     path("login/", auth_views.LoginView.as_view(authentication_form=EmailAuthenticationForm), name="login"),
     path("logout/", auth_views.LogoutView.as_view(next_page="login"), name="logout"),
+    
+    # User registration
+    path("auth/", include("apps.users.urls")),
 
+    # Redirect root to dashboard (or login if not authenticated)
+    path("", RedirectView.as_view(url="login/", permanent=False), name="home"),
+    
     path("", include("apps.expenses.urls")),
 ]

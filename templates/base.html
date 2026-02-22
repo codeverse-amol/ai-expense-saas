@@ -7,7 +7,7 @@
 <body>
 
     <nav class="navbar navbar-dark bg-dark px-4">
-        <a class="navbar-brand text-white" href="{% url 'dashboard' %}">
+        <a class="navbar-brand text-white" href="{% url 'login' %}">
             AI Expense Manager
         </a>
     
@@ -19,8 +19,9 @@
                     <button type="submit" class="btn btn-danger btn-sm">Logout</button>
                 </form>
             {% else %}
-                {% if request.path != '/login/' %}
-                    <a href="{% url 'login' %}" class="btn btn-primary btn-sm">Login</a>
+                {% if request.path != '/login/' and request.path != '/auth/signup/' %}
+                    <a href="{% url 'login' %}" class="btn btn-primary btn-sm me-2">Login</a>
+                    <a href="{% url 'signup' %}" class="btn btn-success btn-sm">Sign Up</a>
                 {% endif %}
             {% endif %}
         </div>

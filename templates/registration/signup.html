@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center" style="margin-top: 30px;">
+    <div class="col-md-5">
+        <div class="card shadow">
+            <div class="card-body">
+                <h3 class="card-title text-center mb-4">Create Account</h3>
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <strong>Error!</strong>
+                        {% for error in form.non_field_errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {# Email Field #}
+                    <div class="mb-3">
+                        <label for="id_email" class="form-label">Email</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.email.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    {# Username Field #}
+                    <div class="mb-3">
+                        <label for="id_username" class="form-label">Username</label>
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.username.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    {# Password Field #}
+                    <div class="mb-3">
+                        <label for="id_password1" class="form-label">Password</label>
+                        {{ form.password1 }}
+                        {% if form.password1.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.password1.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                        <small class="text-muted d-block mt-1">
+                            Password must be at least 8 characters long.
+                        </small>
+                    </div>
+
+                    {# Confirm Password Field #}
+                    <div class="mb-3">
+                        <label for="id_password2" class="form-label">Confirm Password</label>
+                        {{ form.password2 }}
+                        {% if form.password2.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.password2.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 mb-3">Create Account</button>
+                </form>
+
+                <hr>
+                <p class="text-center text-muted small">
+                    Already have an account? <a href="{% url 'login' %}">Login here</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    #id_email, #id_username, #id_password1, #id_password2 {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid #ccc;
+        border-radius: 0.25rem;
+    }
+    #id_email:focus, #id_username:focus, #id_password1:focus, #id_password2:focus {
+        border-color: #80bdff;
+        outline: 0;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+</style>
+{% endblock %}
