@@ -35,7 +35,7 @@
                         {% for item in budget_data %}
                         <tr>
                             <td>
-                                <strong>{{ item.month|date:"F" }} {{ item.year }}</strong>
+                                <strong>{{ item.month_name }} {{ item.year }}</strong>
                             </td>
                             <td>
                                 <span style="color: #6366f1; font-weight: 600;">₹ {{ item.budget_amount }}</span>

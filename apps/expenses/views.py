@@ -1,6 +1,7 @@
 from typing import cast
+import calendar
 
-from django.views.generic import ListView, CreateView, UpdateView, TemplateView
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.shortcuts import redirect
@@ -363,6 +364,7 @@ class BudgetHistoryView(LoginRequiredMixin, ListView):
                 "id": budget.id,
                 "year": budget.year,
                 "month": budget.month,
+                "month_name": calendar.month_name[budget.month],
                 "budget_amount": budget.amount,
                 "spent": monthly_spent,
                 "remaining": remaining,
@@ -386,7 +388,7 @@ class BudgetHistoryView(LoginRequiredMixin, ListView):
         return context
 
 
-class MonthlyBudgetDeleteView(LoginRequiredMixin, UpdateView):
+class MonthlyBudgetDeleteView(LoginRequiredMixin, DeleteView):
     """Delete a monthly budget"""
     model = MonthlyBudget
     template_name = "expenses/budget_confirm_delete.html"
@@ -396,16 +398,16 @@ class MonthlyBudgetDeleteView(LoginRequiredMixin, UpdateView):
     def get_queryset(self):
         return MonthlyBudget.objects.filter(user=self.request.user)
 
-    def post(self, request, *args, **kwargs):
-        budget: MonthlyBudget = cast(MonthlyBudget, self.get_object())
+    def delete(self, request, *args, **kwargs):
+        """Override delete to also remove category budgets"""
+        budget = self.get_object()
         # Also delete associated category budgets for this month
         CategoryBudget.objects.filter(
             user=request.user,
             year=budget.year,
             month=budget.month
         ).delete()
-        budget.delete()
-        return redirect("budget-history")
+        return super().delete(request, *args, **kwargs)
 
 
 # ======================================
