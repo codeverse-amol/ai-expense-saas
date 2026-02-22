@@ -712,11 +712,26 @@ class CategoryBudgetSetupView(LoginRequiredMixin, TemplateView):
             month=month
         ).first()
         
+        # Get available years for filter
+        budget_years = MonthlyBudget.objects.filter(user=user).values_list('year', flat=True).distinct().order_by('-year')
+        available_years = list(budget_years) if budget_years else [now.year]
+        if year not in available_years:
+            available_years.append(year)
+            available_years.sort(reverse=True)
+        
+        # Month name for display
+        month_names = ['January', 'February', 'March', 'April', 'May', 'June',
+                      'July', 'August', 'September', 'October', 'November', 'December']
+        month_name = month_names[month - 1]
+        
         context['categories'] = category_data
         context['year'] = year
         context['month'] = month
+        context['month_name'] = month_name
         context['monthly_budget'] = monthly_budget
         context['total_allocated'] = sum(existing_budgets.values())
+        context['available_years'] = available_years
+        context['is_current_month'] = (year == now.year and month == now.month)
         
         return context
     
