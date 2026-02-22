@@ -20,6 +20,9 @@
             <div class="card-body">
                 <form method="post" data-loading="true">
                     {% csrf_token %}
+                    {% if request.GET.next %}
+                    <input type="hidden" name="next" value="{{ request.GET.next }}">
+                    {% endif %}
                     
                     <div class="form-group">
                         <label for="id_title" class="form-label">

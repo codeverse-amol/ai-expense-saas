@@ -150,7 +150,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 "category_budget_data": category_budget_data,
                 "total_category_budget": total_category_budget,
                 "unallocated_budget": unallocated_budget,
-                "current_month": now.month,
+                "current_month": now.replace(day=1),  # First day of month for date formatting
                 "current_year": now.year,
                 "ai_insights": context.get("ai_insights", []),
             }
@@ -166,7 +166,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             context["category_budget_data"] = category_budget_data
             context["total_category_budget"] = total_category_budget
             context["unallocated_budget"] = unallocated_budget
-            context["current_month"] = now.month
+            context["current_month"] = now.replace(day=1)  # First day of month for date formatting
             context["current_year"] = now.year
 
         except Exception as e:
@@ -181,6 +181,8 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             context["predicted_next_month"] = 0
             context["category_budget_data"] = []
             context["total_category_budget"] = 0
+            context["current_month"] = now.replace(day=1)
+            context["current_year"] = now.year
 
         return context
 
@@ -286,8 +288,14 @@ class ExpenseCreateView(LoginRequiredMixin, CreateView):
     model = Expense
     form_class = ExpenseForm
     template_name = "expenses/expense_form.html"
-    success_url = reverse_lazy("expense-list")
     login_url = 'login'
+
+    def get_success_url(self):
+        # Check if 'next' parameter was passed
+        next_url = self.request.GET.get('next') or self.request.POST.get('next')
+        if next_url:
+            return next_url
+        return reverse_lazy("expense-list")
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -402,6 +410,40 @@ class MonthlyBudgetCreateView(LoginRequiredMixin, CreateView):
         cache_key = f'dashboard_{self.request.user.id}_{now.year}_{now.month}'
         cache.delete(cache_key)
         
+        logger.info(f"User {self.request.user.email} created budget: ₹{form.instance.amount} for {form.instance.year}/{form.instance.month}")
+        return super().form_valid(form)
+
+
+class MonthlyBudgetUpdateView(LoginRequiredMixin, UpdateView):
+    """Edit an existing monthly budget"""
+    model = MonthlyBudget
+    form_class = MonthlyBudgetForm
+    template_name = "expenses/budget_form.html"
+    success_url = reverse_lazy("budget-history")
+    login_url = 'login'
+
+    def get_queryset(self):
+        return MonthlyBudget.objects.filter(user=self.request.user)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
+        kwargs["is_edit"] = True  # Flag to skip duplicate check
+        return kwargs
+
+    def form_valid(self, form):
+        # Invalidate dashboard cache for this budget's month
+        cache_key = f'dashboard_{self.request.user.id}_{form.instance.year}_{form.instance.month}'
+        cache.delete(cache_key)
+        
+        logger.info(f"User {self.request.user.email} updated budget: ₹{form.instance.amount} for {form.instance.year}/{form.instance.month}")
+        return super().form_valid(form)
+        
+        # Invalidate dashboard cache
+        now = timezone.now()
+        cache_key = f'dashboard_{self.request.user.id}_{now.year}_{now.month}'
+        cache.delete(cache_key)
+        
         return super().form_valid(form)
     
 
@@ -415,9 +457,14 @@ class BudgetHistoryView(LoginRequiredMixin, ListView):
     login_url = 'login'
 
     def get_queryset(self):
-        return MonthlyBudget.objects.filter(
-            user=self.request.user
-        ).order_by("-year", "-month")
+        queryset = MonthlyBudget.objects.filter(user=self.request.user)
+        
+        # Get year filter from query params
+        year_filter = self.request.GET.get('year')
+        if year_filter and year_filter != 'all':
+            queryset = queryset.filter(year=int(year_filter))
+        
+        return queryset.order_by("-year", "-month")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -452,6 +499,12 @@ class BudgetHistoryView(LoginRequiredMixin, ListView):
             })
 
         context["budget_data"] = budget_data
+        
+        # Get distinct years for the dropdown
+        all_budgets = MonthlyBudget.objects.filter(user=self.request.user)
+        years = sorted(set(b.year for b in all_budgets), reverse=True)
+        context["available_years"] = years
+        context["selected_year"] = self.request.GET.get('year', 'all')
 
         months = []
         budget_values = []
@@ -514,8 +567,14 @@ class CategoryCreateView(LoginRequiredMixin, CreateView):
     model = Category
     form_class = CategoryForm
     template_name = "expenses/category_form.html"
-    success_url = reverse_lazy("category-list")
     login_url = 'login'
+
+    def get_success_url(self):
+        # Check if 'next' parameter was passed
+        next_url = self.request.GET.get('next') or self.request.POST.get('next')
+        if next_url:
+            return next_url
+        return reverse_lazy("category-list")
 
     def form_valid(self, form):
         form.instance.user = self.request.user

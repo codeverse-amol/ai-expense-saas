@@ -11,6 +11,7 @@ class MonthlyBudgetForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user", None)
+        self.is_edit = kwargs.pop("is_edit", False)
         super().__init__(*args, **kwargs)
 
         current_year = timezone.now().year
@@ -22,11 +23,13 @@ class MonthlyBudgetForm(forms.ModelForm):
         year = cleaned_data.get("year")
         month = cleaned_data.get("month")
 
-        if MonthlyBudget.objects.filter(
-            user=self.user,
-            year=year,
-            month=month
-        ).exists():
-            raise forms.ValidationError("Budget already exists for this month.")
+        # Skip duplicate check if editing
+        if not self.is_edit:
+            if MonthlyBudget.objects.filter(
+                user=self.user,
+                year=year,
+                month=month
+            ).exists():
+                raise forms.ValidationError("Budget already exists for this month.")
 
         return cleaned_data

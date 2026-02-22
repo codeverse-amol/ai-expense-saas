@@ -8,20 +8,17 @@
         <h1 class="dashboard-title">
             <i class="fas fa-chart-line me-2"></i>Dashboard
         </h1>
-        <p class="dashboard-subtitle">Welcome back! Here's your expense overview</p>
+        <p class="dashboard-subtitle">Welcome back! Here's your expense overview for <strong>{{ current_month|date:"F Y" }}</strong></p>
     </div>
 </div>
 
 <!-- Action Buttons -->
 <div class="action-buttons">
-    <a href="{% url 'expense-add' %}" class="btn btn-success btn-lg">
-        <i class="fas fa-plus me-2"></i>Add Expense
-    </a>
     <a href="{% url 'expense-list' %}" class="btn btn-primary btn-lg">
         <i class="fas fa-list me-2"></i>View Expenses
     </a>
     <a href="{% url 'budget-add' %}" class="btn btn-warning btn-lg">
-        <i class="fas fa-calculator me-2"></i>Set Budget
+        <i class="fas fa-calculator me-2"></i>New Budget
     </a>
     <a href="{% url 'category-budget-setup' %}" class="btn btn-info btn-lg">
         <i class="fas fa-tags me-2"></i>Category Budgets
@@ -263,9 +260,57 @@
                         padding: 15,
                         usePointStyle: true,
                     }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return label + ': ₹' + value.toFixed(2) + ' (' + percentage + '%)';
+                        }
+                    }
+                },
+                datalabels: {
+                    formatter: (value, ctx) => {
+                        const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                        const percentage = ((value / total) * 100).toFixed(1);
+                        return percentage > 5 ? percentage + '%' : ''; // Only show if > 5%
+                    },
+                    color: '#fff',
+                    font: {
+                        weight: 'bold',
+                        size: 14
+                    }
                 }
             }
-        }
+        },
+        plugins: [{
+            id: 'percentagePlugin',
+            afterDatasetDraw(chart) {
+                const ctx = chart.ctx;
+                chart.data.datasets.forEach((dataset, i) => {
+                    const meta = chart.getDatasetMeta(i);
+                    if (!meta.hidden) {
+                        meta.data.forEach((element, index) => {
+                            const data = dataset.data[index];
+                            const total = dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((data / total) * 100).toFixed(1);
+                            
+                            if (percentage > 5) { // Only show percentage if > 5%
+                                const {x, y} = element.tooltipPosition();
+                                ctx.fillStyle = '#fff';
+                                ctx.font = 'bold 14px Arial';
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'middle';
+                                ctx.fillText(percentage + '%', x, y);
+                            }
+                        });
+                    }
+                });
+            }
+        }]
     });
 </script>
 

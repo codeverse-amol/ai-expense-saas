@@ -71,3 +71,76 @@ INFO 2026-02-22 19:17:46,903 autoreload run_with_reloader 31036 29540 | Watching
 INFO 2026-02-22 19:21:36,981 autoreload trigger_reload 31036 29540 | C:\Users\Amol Bandgar\AppData\Local\Programs\Python\Python313\Lib\site-packages\asgiref\local.py changed, reloading.
 INFO 2026-02-22 19:21:37,509 autoreload run_with_reloader 29216 6336 | Watching for file changes with StatReloader
 INFO 2026-02-22 19:21:41,279 autoreload trigger_reload 29216 6336 | C:\Users\Amol Bandgar\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\contrib\admin\__init__.py changed, reloading.
+INFO 2026-02-22 19:54:08,412 autoreload run_with_reloader 14732 32368 | Watching for file changes with StatReloader
+INFO 2026-02-22 19:55:42,576 log log_message 14732 29300 | "GET / HTTP/1.1" 302 0
+ERROR 2026-02-22 19:55:42,798 log log_message 14732 29300 | "GET /login/?next=/ HTTP/1.1" 500 263916
+WARNING 2026-02-22 19:55:43,122 log log_message 14732 29300 | "GET /favicon.ico HTTP/1.1" 404 6064
+INFO 2026-02-22 19:55:53,630 autoreload run_with_reloader 32716 30032 | Watching for file changes with StatReloader
+INFO 2026-02-22 19:57:30,591 autoreload trigger_reload 32716 30032 | C:\Users\Amol Bandgar\Desktop\python_django\ai_expense_saas\apps\ai_engine\models.py changed, reloading.
+INFO 2026-02-22 19:57:30,812 autoreload trigger_reload 25956 2260 | C:\Users\Amol Bandgar\Desktop\python_django\ai_expense_saas\apps\ai_engine\models.py changed, reloading.
+INFO 2026-02-22 19:57:31,090 autoreload run_with_reloader 26668 26940 | Watching for file changes with StatReloader
+INFO 2026-02-22 19:57:31,281 autoreload run_with_reloader 15328 23548 | Watching for file changes with StatReloader
+INFO 2026-02-22 19:57:38,307 autoreload trigger_reload 26668 26940 | C:\Users\Amol Bandgar\Desktop\python_django\ai_expense_saas\apps\ai_engine\models.py changed, reloading.
+INFO 2026-02-22 19:57:38,491 autoreload trigger_reload 15328 23548 | C:\Users\Amol Bandgar\Desktop\python_django\ai_expense_saas\apps\ai_engine\models.py changed, reloading.
+INFO 2026-02-22 19:57:38,718 autoreload run_with_reloader 30376 30608 | Watching for file changes with StatReloader
+INFO 2026-02-22 19:57:38,942 autoreload run_with_reloader 31692 31292 | Watching for file changes with StatReloader
+INFO 2026-02-22 19:57:45,957 autoreload trigger_reload 30376 30608 | C:\Users\Amol Bandgar\Desktop\python_django\ai_expense_saas\apps\ai_engine\models.py changed, reloading.
+INFO 2026-02-22 19:57:46,189 autoreload trigger_reload 31692 31292 | C:\Users\Amol Bandgar\Desktop\python_django\ai_expense_saas\apps\ai_engine\models.py changed, reloading.
+INFO 2026-02-22 19:57:46,415 autoreload run_with_reloader 21916 8840 | Watching for file changes with StatReloader
+INFO 2026-02-22 19:57:46,682 autoreload run_with_reloader 28260 30036 | Watching for file changes with StatReloader
+INFO 2026-02-22 19:57:48,105 autoreload trigger_reload 21916 8840 | C:\Users\Amol Bandgar\Desktop\python_django\ai_expense_saas\apps\ai_engine\models.py changed, reloading.
+INFO 2026-02-22 19:57:48,429 autoreload trigger_reload 28260 30036 | C:\Users\Amol Bandgar\Desktop\python_django\ai_expense_saas\apps\ai_engine\models.py changed, reloading.
+INFO 2026-02-22 19:57:48,674 autoreload run_with_reloader 30236 30612 | Watching for file changes with StatReloader
+INFO 2026-02-22 19:57:49,044 autoreload run_with_reloader 32212 19924 | Watching for file changes with StatReloader
+INFO 2026-02-22 19:59:20,734 log log_message 30236 32740 | "GET / HTTP/1.1" 302 0
+ERROR 2026-02-22 19:59:20,871 log log_message 30236 32740 | "GET /login/?next=/ HTTP/1.1" 500 261848
+WARNING 2026-02-22 19:59:46,590 log log_message 30236 32740 | "GET /dashboard/ HTTP/1.1" 404 6061
+WARNING 2026-02-22 20:00:29,813 log log_message 30236 32740 | "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 6175
+INFO 2026-02-22 21:22:19,069 autoreload trigger_reload 32212 19924 | C:\Users\Amol Bandgar\Desktop\python_django\ai_expense_saas\apps\expenses\views.py changed, reloading.
+INFO 2026-02-22 21:22:19,070 autoreload trigger_reload 30236 30612 | C:\Users\Amol Bandgar\Desktop\python_django\ai_expense_saas\apps\expenses\views.py changed, reloading.
+INFO 2026-02-22 21:22:19,741 autoreload run_with_reloader 29792 19388 | Watching for file changes with StatReloader
+INFO 2026-02-22 21:22:19,813 autoreload run_with_reloader 22604 2536 | Watching for file changes with StatReloader
+INFO 2026-02-22 21:22:25,508 autoreload trigger_reload 29792 19388 | C:\Users\Amol Bandgar\Desktop\python_django\ai_expense_saas\apps\expenses\views.py changed, reloading.
+INFO 2026-02-22 21:22:25,529 autoreload trigger_reload 22604 2536 | C:\Users\Amol Bandgar\Desktop\python_django\ai_expense_saas\apps\expenses\views.py changed, reloading.
+INFO 2026-02-22 21:22:26,048 autoreload run_with_reloader 32436 28704 | Watching for file changes with StatReloader
+INFO 2026-02-22 21:22:26,061 autoreload run_with_reloader 24640 17984 | Watching for file changes with StatReloader
+INFO 2026-02-22 21:22:32,726 autoreload trigger_reload 32436 28704 | C:\Users\Amol Bandgar\Desktop\python_django\ai_expense_saas\apps\expenses\views.py changed, reloading.
+INFO 2026-02-22 21:22:32,733 autoreload trigger_reload 24640 17984 | C:\Users\Amol Bandgar\Desktop\python_django\ai_expense_saas\apps\expenses\views.py changed, reloading.
+INFO 2026-02-22 21:22:33,157 autoreload run_with_reloader 30180 26416 | Watching for file changes with StatReloader
+INFO 2026-02-22 21:22:33,180 autoreload run_with_reloader 22468 15592 | Watching for file changes with StatReloader
+INFO 2026-02-22 21:22:59,043 autoreload trigger_reload 30180 26416 | C:\Users\Amol Bandgar\Desktop\python_django\ai_expense_saas\apps\expenses\views.py changed, reloading.
+INFO 2026-02-22 21:22:59,099 autoreload trigger_reload 22468 15592 | C:\Users\Amol Bandgar\Desktop\python_django\ai_expense_saas\apps\expenses\views.py changed, reloading.
+INFO 2026-02-22 21:22:59,470 autoreload run_with_reloader 9512 31880 | Watching for file changes with StatReloader
+INFO 2026-02-22 21:22:59,562 autoreload run_with_reloader 18520 26696 | Watching for file changes with StatReloader
+INFO 2026-02-22 21:23:06,048 autoreload trigger_reload 9512 31880 | C:\Users\Amol Bandgar\Desktop\python_django\ai_expense_saas\apps\expenses\budget_forms.py changed, reloading.
+INFO 2026-02-22 21:23:06,177 autoreload trigger_reload 18520 26696 | C:\Users\Amol Bandgar\Desktop\python_django\ai_expense_saas\apps\expenses\budget_forms.py changed, reloading.
+INFO 2026-02-22 21:23:06,495 autoreload run_with_reloader 31124 10488 | Watching for file changes with StatReloader
+INFO 2026-02-22 21:23:06,651 autoreload run_with_reloader 11544 4920 | Watching for file changes with StatReloader
+INFO 2026-02-22 21:23:19,180 autoreload trigger_reload 31124 10488 | C:\Users\Amol Bandgar\Desktop\python_django\ai_expense_saas\apps\expenses\urls.py changed, reloading.
+INFO 2026-02-22 21:23:19,393 autoreload trigger_reload 11544 4920 | C:\Users\Amol Bandgar\Desktop\python_django\ai_expense_saas\apps\expenses\urls.py changed, reloading.
+INFO 2026-02-22 21:23:19,647 autoreload run_with_reloader 27484 32016 | Watching for file changes with StatReloader
+INFO 2026-02-22 21:23:19,875 autoreload run_with_reloader 31184 32180 | Watching for file changes with StatReloader
+INFO 2026-02-22 21:23:37,428 autoreload trigger_reload 27484 32016 | C:\Users\Amol Bandgar\Desktop\python_django\ai_expense_saas\apps\expenses\views.py changed, reloading.
+INFO 2026-02-22 21:23:37,674 autoreload trigger_reload 31184 32180 | C:\Users\Amol Bandgar\Desktop\python_django\ai_expense_saas\apps\expenses\views.py changed, reloading.
+INFO 2026-02-22 21:23:37,871 autoreload run_with_reloader 26324 8268 | Watching for file changes with StatReloader
+INFO 2026-02-22 21:23:38,111 autoreload run_with_reloader 19768 32084 | Watching for file changes with StatReloader
+INFO 2026-02-22 21:24:01,691 autoreload trigger_reload 26324 8268 | C:\Users\Amol Bandgar\Desktop\python_django\ai_expense_saas\apps\expenses\views.py changed, reloading.
+INFO 2026-02-22 21:24:02,001 autoreload trigger_reload 19768 32084 | C:\Users\Amol Bandgar\Desktop\python_django\ai_expense_saas\apps\expenses\budget_forms.py changed, reloading.
+INFO 2026-02-22 21:24:02,223 autoreload run_with_reloader 5260 10040 | Watching for file changes with StatReloader
+INFO 2026-02-22 21:24:02,474 autoreload run_with_reloader 23356 10336 | Watching for file changes with StatReloader
+INFO 2026-02-22 21:24:24,013 autoreload trigger_reload 5260 10040 | C:\Users\Amol Bandgar\Desktop\python_django\ai_expense_saas\apps\expenses\views.py changed, reloading.
+INFO 2026-02-22 21:24:24,324 autoreload trigger_reload 23356 10336 | C:\Users\Amol Bandgar\Desktop\python_django\ai_expense_saas\apps\expenses\views.py changed, reloading.
+INFO 2026-02-22 21:24:24,549 autoreload run_with_reloader 32104 29352 | Watching for file changes with StatReloader
+INFO 2026-02-22 21:24:24,836 autoreload run_with_reloader 24944 31720 | Watching for file changes with StatReloader
+INFO 2026-02-22 21:25:19,227 autoreload trigger_reload 24944 31720 | C:\Users\Amol Bandgar\Desktop\python_django\ai_expense_saas\apps\expenses\views.py changed, reloading.
+INFO 2026-02-22 21:25:19,624 autoreload run_with_reloader 27536 30808 | Watching for file changes with StatReloader
+INFO 2026-02-22 21:25:19,898 autoreload trigger_reload 32104 29352 | C:\Users\Amol Bandgar\Desktop\python_django\ai_expense_saas\apps\expenses\views.py changed, reloading.
+INFO 2026-02-22 21:25:20,287 autoreload run_with_reloader 28492 27484 | Watching for file changes with StatReloader
+INFO 2026-02-22 21:25:35,016 autoreload trigger_reload 28492 27484 | C:\Users\Amol Bandgar\Desktop\python_django\ai_expense_saas\apps\expenses\views.py changed, reloading.
+INFO 2026-02-22 21:25:35,440 autoreload trigger_reload 27536 30808 | C:\Users\Amol Bandgar\Desktop\python_django\ai_expense_saas\apps\expenses\views.py changed, reloading.
+INFO 2026-02-22 21:25:35,452 autoreload run_with_reloader 27360 6292 | Watching for file changes with StatReloader
+INFO 2026-02-22 21:25:35,880 autoreload run_with_reloader 7084 16308 | Watching for file changes with StatReloader
+INFO 2026-02-22 21:26:18,638 autoreload trigger_reload 27360 6292 | C:\Users\Amol Bandgar\Desktop\python_django\ai_expense_saas\apps\expenses\views.py changed, reloading.
+INFO 2026-02-22 21:26:19,009 autoreload run_with_reloader 1732 30204 | Watching for file changes with StatReloader
+INFO 2026-02-22 21:26:19,066 autoreload trigger_reload 7084 16308 | C:\Users\Amol Bandgar\Desktop\python_django\ai_expense_saas\apps\expenses\views.py changed, reloading.
+INFO 2026-02-22 21:26:19,454 autoreload run_with_reloader 29760 32476 | Watching for file changes with StatReloader

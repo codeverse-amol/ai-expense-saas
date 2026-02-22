@@ -13,6 +13,30 @@
     </a>
 </div>
 
+{% if available_years %}
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-4">
+                    <label for="yearFilter" class="form-label"><i class="fas fa-filter me-2"></i>Filter by Year:</label>
+                    <select id="yearFilter" class="form-select" onchange="window.location.href='?year=' + this.value">
+                        <option value="all" {% if selected_year == 'all' %}selected{% endif %}>All Years</option>
+                        {% for year in available_years %}
+                            <option value="{{ year }}" {% if selected_year|stringformat:"s" == year|stringformat:"s" %}selected{% endif %}>{{ year }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-8 text-end">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Showing {% if selected_year == 'all' %}all{% else %}{{ selected_year }}{% endif %} budgets
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
 {% if budget_data %}
     <div class="card mb-4">
         <div class="card-header">
@@ -58,7 +82,10 @@
                                 {% endif %}
                             </td>
                             <td>
-                                <a href="{% url 'budget-delete' item.id %}" class="btn btn-sm btn-outline-danger">
+                                <a href="{% url 'budget-edit' item.id %}" class="btn btn-sm btn-outline-primary me-2" title="Edit Budget">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                                <a href="{% url 'budget-delete' item.id %}" class="btn btn-sm btn-outline-danger" title="Delete Budget">
                                     <i class="fas fa-trash"></i> Delete
                                 </a>
                             </td>
