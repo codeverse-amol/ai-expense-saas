@@ -96,7 +96,6 @@ WSGI_APPLICATION = "config.wsgi.application"
 # --------------------------------------------------
 
 from urllib.parse import urlparse
-import dj_database_url
 
 # Get DATABASE_URL from environment
 DATABASE_URL = os.environ.get("DATABASE_URL")
@@ -120,23 +119,23 @@ if DATABASE_URL:
         DATABASES = {
             "default": {
                 "ENGINE": "django.db.backends.postgresql",
-                "NAME": parsed_url.path.lstrip("/"),  # Remove leading /
-                "USER": parsed_url.username,
-                "PASSWORD": parsed_url.password,
-                "HOST": parsed_url.hostname,
+                "NAME": parsed_url.path.lstrip("/") or "postgres",  # Remove leading /
+                "USER": parsed_url.username or "postgres",
+                "PASSWORD": parsed_url.password or "",
+                "HOST": parsed_url.hostname or "localhost",
                 "PORT": parsed_url.port or 5432,  # Default to 5432
                 "CONN_MAX_AGE": 600,
-                "OPTIONS": {
-                    "sslmode": "require",
-                }
+                "ATOMIC_REQUESTS": False,
+                "TIME_ZONE": "UTC",
             }
         }
         
         print(f"[DEBUG] ✓ Database configured:")
         print(f"  - Engine: postgresql")
-        print(f"  - Host: {parsed_url.hostname}")
+        print(f"  - Host: {parsed_url.hostname or 'localhost'}")
         print(f"  - Port: {parsed_url.port or 5432}")
-        print(f"  - Database: {parsed_url.path.lstrip('/')}")
+        print(f"  - Database: {parsed_url.path.lstrip('/') or 'postgres'}")
+        print(f"  - User: {parsed_url.username or 'postgres'}")
         
     except Exception as e:
         print(f"[DEBUG] ✗ Error parsing DATABASE_URL: {e}")
