@@ -216,19 +216,29 @@
     </nav>
     {% endif %}
 {% else %}
-    <div style="text-align: center; padding: 3rem 1rem;">
-        <i class="fas fa-search" style="font-size: 3.5rem; color: #d1d5db; margin-bottom: 1rem; display: block;"></i>
-        <h3 style="color: #6b7280; margin-bottom: 0.5rem;">No expenses found</h3>
-        <p style="color: #9ca3af; margin-bottom: 1.5rem;">
+    <div class="empty-state">
+        <div class="empty-state-icon">
+            <i class="fas fa-receipt"></i>
+        </div>
+        <h3 class="empty-state-title">No expenses found</h3>
+        <p class="empty-state-text">
             {% if request.GET %}
-                Try adjusting your filters or <a href="{% url 'expense-list' %}" style="color: #6366f1; font-weight: 600;">reset them</a>
+                No expenses match your current filters. Try adjusting your search criteria or <a href="{% url 'expense-list' %}" class="link-primary">reset filters</a>.
             {% else %}
-                Start tracking your expenses to see them here
+                You haven't added any expenses yet. Track your spending to gain insights into your financial habits.
             {% endif %}
         </p>
-        <a href="{% url 'expense-add' %}" class="btn btn-primary btn-lg">
-            <i class="fas fa-plus me-2"></i>Add Your First Expense
-        </a>
+        <div class="empty-state-action">
+            <a href="{% url 'expense-add' %}" class="btn btn-primary btn-lg">
+                <i class="fas fa-plus me-2"></i>Add Your First Expense
+            </a>
+        </div>
+        <div class="empty-state-help mt-4">
+            <small class="text-muted">
+                <i class="fas fa-lightbulb me-1"></i>
+                <strong>Tip:</strong> Categorize your expenses to get better insights and AI-powered forecasts.
+            </small>
+        </div>
     </div>
 {% endif %}
 

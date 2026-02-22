@@ -68,3 +68,6 @@ INFO 2026-02-22 19:17:45,863 autoreload trigger_reload 17208 17936 | C:\Users\Am
 INFO 2026-02-22 19:17:46,224 autoreload trigger_reload 3216 10156 | C:\Users\Amol Bandgar\Desktop\python_django\ai_expense_saas\apps\expenses\views.py changed, reloading.
 INFO 2026-02-22 19:17:46,625 autoreload run_with_reloader 25956 2260 | Watching for file changes with StatReloader
 INFO 2026-02-22 19:17:46,903 autoreload run_with_reloader 31036 29540 | Watching for file changes with StatReloader
+INFO 2026-02-22 19:21:36,981 autoreload trigger_reload 31036 29540 | C:\Users\Amol Bandgar\AppData\Local\Programs\Python\Python313\Lib\site-packages\asgiref\local.py changed, reloading.
+INFO 2026-02-22 19:21:37,509 autoreload run_with_reloader 29216 6336 | Watching for file changes with StatReloader
+INFO 2026-02-22 19:21:41,279 autoreload trigger_reload 29216 6336 | C:\Users\Amol Bandgar\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\contrib\admin\__init__.py changed, reloading.

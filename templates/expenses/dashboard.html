@@ -269,4 +269,76 @@
     });
 </script>
 
+<script>
+    // Onboarding Tour for New Users
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check if user has seen the tour (stored in localStorage)
+        const hasSeenTour = localStorage.getItem('dashboard_tour_completed');
+        
+        // Only show tour if user hasn't seen it and has no expenses
+        const totalSpent = {{ total_spent|default:0 }};
+        
+        if (!hasSeenTour && totalSpent === 0) {
+            // Show tour after a short delay
+            setTimeout(function() {
+                startOnboardingTour();
+            }, 1000);
+        }
+    });
+
+    function startOnboardingTour() {
+        introJs().setOptions({
+            steps: [
+                {
+                    title: 'Welcome! 👋',
+                    intro: 'Welcome to AI Expense Manager! Let me show you around in under 30 seconds.'
+                },
+                {
+                    element: document.querySelector('.action-buttons'),
+                    title: 'Quick Actions',
+                    intro: 'These buttons give you quick access to key features. Start by adding your first expense!'
+                },
+                {
+                    element: document.querySelector('.stats-grid'),
+                    title: 'Your Stats',
+                    intro: 'Track your total spending, monthly expenses, and AI-powered forecasts here.'
+                },
+                {
+                    element: document.querySelector('.chart-container'),
+                    title: 'Spending Breakdown',
+                    intro: 'Visualize where your money goes with beautiful charts (they\'ll appear once you add expenses).'
+                },
+                {
+                    element: document.querySelector('.navbar'),
+                    title: 'Navigation',
+                    intro: 'Use the navigation bar to access Expenses, Categories, and Budgets anytime.'
+                },
+                {
+                    title: 'Get Started! 🚀',
+                    intro: 'Ready to take control of your finances? Click "Add Expense" to begin tracking!'
+                }
+            ],
+            showProgress: true,
+            showBullets: false,
+            exitOnOverlayClick: false,
+            doneLabel: 'Get Started',
+            nextLabel: 'Next →',
+            prevLabel: '← Back'
+        }).oncomplete(function() {
+            // Mark tour as completed
+            localStorage.setItem('dashboard_tour_completed', 'true');
+            showToast('Tour completed! Ready to start tracking expenses.', 'success');
+        }).onexit(function() {
+            // User skipped the tour
+            localStorage.setItem('dashboard_tour_completed', 'true');
+        }).start();
+    }
+
+    // Add a button to restart the tour (for testing or if user wants to see it again)
+    function restartTour() {
+        localStorage.removeItem('dashboard_tour_completed');
+        startOnboardingTour();
+    }
+</script>
+
 {% endblock %}

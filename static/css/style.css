@@ -879,3 +879,215 @@ h5 {
     border-bottom-right-radius: 0.375rem;
 }
 
+/* ============================================
+   EMPTY STATES
+   ============================================ */
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: 1rem;
+    box-shadow: var(--shadow);
+    margin: 2rem 0;
+}
+
+.empty-state-icon {
+    font-size: 5rem;
+    color: #d1d5db;
+    margin-bottom: 1.5rem;
+    opacity: 0.6;
+}
+
+.empty-state-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.75rem;
+}
+
+.empty-state-text {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0 auto 2rem;
+    line-height: 1.6;
+}
+
+.empty-state-action {
+    margin-bottom: 1rem;
+}
+
+.empty-state-help {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+/* ============================================
+   MOBILE RESPONSIVE IMPROVEMENTS
+   ============================================ */
+
+@media (max-width: 768px) {
+    /* Navbar */
+    .navbar {
+        padding: 0.75rem 1rem;
+    }
+    
+    .navbar-brand {
+        font-size: 1.25rem;
+    }
+    
+    .navbar-welcome {
+        display: none; /* Hide email on mobile */
+    }
+    
+    /* Page Headers */
+    .page-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .page-header > a {
+        width: 100%;
+    }
+    
+    .page-title {
+        font-size: 1.75rem;
+    }
+    
+    /* Stats Grid */
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    /* Cards */
+    .card-body {
+        padding: 1rem;
+    }
+    
+    /* Filter Forms */
+    .filter-section .row > div {
+        margin-bottom: 1rem;
+    }
+    
+    /* Expense Items */
+    .expense-item {
+        flex-direction: column;
+        padding: 1rem;
+    }
+    
+    .expense-details {
+        margin-left: 0 !important;
+        margin-top: 0.75rem;
+    }
+    
+    .expense-actions {
+        margin-top: 1rem;
+        justify-content: space-between;
+    }
+    
+    /* Empty States */
+    .empty-state {
+        padding: 2rem 1rem;
+    }
+    
+    .empty-state-icon {
+        font-size: 3.5rem;
+    }
+    
+    .empty-state-title {
+        font-size: 1.5rem;
+    }
+    
+    .empty-state-text {
+        font-size: 1rem;
+    }
+    
+    /* Dashboard */
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Budget Cards */
+    .category-budget-card {
+        margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    /* Extra small devices */
+    .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+    }
+    
+    .btn-lg {
+        padding: 0.75rem 1.25rem;
+        font-size: 1rem;
+    }
+    
+    .stat-card {
+        padding: 1rem;
+    }
+    
+    .stat-value {
+        font-size: 1.75rem;
+    }
+}
+
+/* ============================================
+   ACCESSIBILITY IMPROVEMENTS
+   ============================================ */
+
+/* Focus visible for keyboard navigation */
+*:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* Skip to main content link */
+.skip-to-main {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: var(--primary-color);
+    color: white;
+    padding: 8px;
+    text-decoration: none;
+    z-index: 100;
+}
+
+.skip-to-main:focus {
+    top: 0;
+}
+
+/* Better link contrast */
+a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+a:hover {
+    color: var(--primary-dark);
+    text-decoration: underline;
+}
+
+/* Improved form labels */
+.form-label {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+/* Better error states */
+.is-invalid {
+    border-color: var(--danger-color) !important;
+}
+
+.invalid-feedback {
+    color: var(--danger-color);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}

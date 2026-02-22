@@ -49,11 +49,27 @@
     {% endfor %}
 </div>
 {% else %}
-<div class="alert alert-info">
-    <i class="fas fa-info-circle"></i>
-    <strong>No categories yet!</strong> Create your first category to start organizing your expenses.
-    <br>
-    <small>Examples: Food, Transport, Bills, Entertainment, Shopping, etc.</small>
+<div class="empty-state">
+    <div class="empty-state-icon">
+        <i class="fas fa-tags"></i>
+    </div>
+    <h3 class="empty-state-title">No categories yet</h3>
+    <p class="empty-state-text">
+        Categories help you organize and analyze your spending patterns. Create your first category to get started!
+    </p>
+    <div class="empty-state-action">
+        <a href="{% url 'category-add' %}" class="btn btn-primary btn-lg">
+            <i class="fas fa-plus me-2"></i>Create Your First Category
+        </a>
+    </div>
+    <div class="empty-state-help mt-4">
+        <div class="alert alert-light border">
+            <small class="text-muted">
+                <i class="fas fa-lightbulb me-1 text-warning"></i>
+                <strong>Suggestions:</strong> Food, Transport, Bills, Entertainment, Shopping, Healthcare, Education
+            </small>
+        </div>
+    </div>
 </div>
 {% endif %}
 
