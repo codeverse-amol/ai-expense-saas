@@ -59,7 +59,13 @@
                         {% for item in budget_data %}
                         <tr>
                             <td>
-                                <strong>{{ item.month_name }} {{ item.year }}</strong>
+                                <a href="{% url 'dashboard' %}?year={{ item.year }}&month={{ item.month }}" 
+                                   class="text-decoration-none"
+                                   title="View {{ item.month_name }} {{ item.year }} dashboard">
+                                    <strong style="color: #4f46e5; cursor: pointer;">
+                                        <i class="fas fa-chart-line me-1"></i>{{ item.month_name }} {{ item.year }}
+                                    </strong>
+                                </a>
                             </td>
                             <td>
                                 <span style="color: #6366f1; font-weight: 600;">₹ {{ item.budget_amount }}</span>
@@ -187,5 +193,18 @@
         }
     });
 </script>
+
+<style>
+    /* Make budget month links more interactive */
+    .table td a:hover strong {
+        color: #6366f1 !important;
+        text-decoration: underline !important;
+    }
+    
+    .table tr:hover {
+        background-color: #f9fafb;
+        transition: background-color 0.2s ease;
+    }
+</style>
 
 {% endblock %}
