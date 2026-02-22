@@ -1,19 +1,25 @@
 from typing import cast
 import calendar
+import logging
 
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.shortcuts import redirect
-from django.db.models import Sum, Q
+from django.db.models import Sum, Q, Prefetch
 from django.db.models.functions import TruncMonth
 from django.utils import timezone
+from django.core.cache import cache
 
 from .models import Expense, MonthlyBudget, Category, CategoryBudget
 from .forms import ExpenseForm, ExpenseFilterForm, CategoryForm, CategoryBudgetForm
 from .budget_forms import MonthlyBudgetForm
+from apps.ai_engine.ai_service import forecast_next_month_spending, generate_insights_for_user
 
 import json
+
+# Get logger for this module
+logger = logging.getLogger(__name__)
 
 
 # ======================================
@@ -27,6 +33,18 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         user = self.request.user
         now = timezone.now()
+        
+        # Try to get cached dashboard data
+        cache_key = f'dashboard_{user.id}_{now.year}_{now.month}'
+        cached_data = cache.get(cache_key)
+        
+        if cached_data:
+            logger.info(f"Dashboard cache hit for user {user.email}")
+            context.update(cached_data)
+            return context
+        
+        # Cache miss - calculate dashboard data
+        logger.info(f"Dashboard cache miss for user {user.email}, calculating...")
 
         try:
             # Get basic stats with error handling
@@ -67,26 +85,40 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             budget_amount = current_budget.amount if current_budget else 0
             remaining_amount = budget_amount - monthly_spent
             percentage_used = (monthly_spent / budget_amount * 100) if budget_amount > 0 else 0
+            
+            # AI-powered forecast for next month
+            predicted_next_month = forecast_next_month_spending(user)
 
-            # Category-wise budget breakdown
+            # Category-wise budget breakdown (optimized with prefetch)
+            # Prefetch expenses for current month to avoid N+1 queries
+            current_month_expenses = Expense.objects.filter(
+                user=user,
+                is_deleted=False,
+                expense_date__year=now.year,
+                expense_date__month=now.month
+            )
+            
             category_budgets = CategoryBudget.objects.filter(
                 user=user,
                 year=now.year,
                 month=now.month
-            ).select_related('category')
+            ).select_related('category').prefetch_related(
+                Prefetch(
+                    'category__expenses',
+                    queryset=current_month_expenses,
+                    to_attr='current_month_expenses'
+                )
+            )
             
             category_budget_data = []
             total_category_budget = 0
             
             for cat_budget in category_budgets:
-                # Calculate spent for this category this month
-                spent = Expense.objects.filter(
-                    user=user,
-                    category=cat_budget.category,
-                    is_deleted=False,
-                    expense_date__year=now.year,
-                    expense_date__month=now.month
-                ).aggregate(total=Sum("amount"))["total"] or 0
+                # Calculate spent from prefetched data (no extra query!)
+                spent = sum(
+                    expense.amount 
+                    for expense in cat_budget.category.current_month_expenses
+                )
                 
                 remaining = cat_budget.amount - spent
                 percentage = (spent / cat_budget.amount * 100) if cat_budget.amount > 0 else 0
@@ -105,6 +137,25 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             # Calculate unallocated budget
             unallocated_budget = budget_amount - total_category_budget
 
+            
+            # Cache the dashboard data for 15 minutes
+            dashboard_data = {
+                "total_spent": total_spent,
+                "monthly_spent": monthly_spent,
+                "category_data": category_data,
+                "budget_amount": budget_amount,
+                "remaining_amount": remaining_amount,
+                "percentage_used": round(percentage_used, 2),
+                "predicted_next_month": predicted_next_month,
+                "category_budget_data": category_budget_data,
+                "total_category_budget": total_category_budget,
+                "unallocated_budget": unallocated_budget,
+                "current_month": now.month,
+                "current_year": now.year,
+                "ai_insights": context.get("ai_insights", []),
+            }
+            cache.set(cache_key, dashboard_data, 60 * 15)  # 15 minutes
+            logger.info(f"Dashboard data cached for user {user.email}")
             context["total_spent"] = total_spent
             context["monthly_spent"] = monthly_spent
             context["category_data"] = category_data
@@ -120,7 +171,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
 
         except Exception as e:
             # If anything fails, just show empty dashboard
-            print(f"[ERROR] Dashboard error: {e}")
+            logger.error(f"Dashboard error for user {user.email}: {e}", exc_info=True)
             context["total_spent"] = 0
             context["monthly_spent"] = 0
             context["category_data"] = []
@@ -145,10 +196,11 @@ class ExpenseListView(LoginRequiredMixin, ListView):
     paginate_by = 20
 
     def get_queryset(self):
+        # Use select_related to avoid N+1 queries on category
         queryset = Expense.objects.filter(
             user=self.request.user,
             is_deleted=False
-        )
+        ).select_related('category')
         
         # Get filter parameters from GET request
         search = self.request.GET.get('search', '').strip()
@@ -257,6 +309,14 @@ class ExpenseCreateView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.user = self.request.user
+        expense = form.save()
+        
+        # Invalidate dashboard cache
+        now = timezone.now()
+        cache_key = f'dashboard_{self.request.user.id}_{now.year}_{now.month}'
+        cache.delete(cache_key)
+        
+        logger.info(f"User {self.request.user.email} created expense: {expense.title} - ₹{expense.amount}")
         return super().form_valid(form)
 
 
@@ -280,6 +340,13 @@ class ExpenseUpdateView(LoginRequiredMixin, UpdateView):
         kwargs = super().get_form_kwargs()
         kwargs["user"] = self.request.user
         return kwargs
+    
+    def form_valid(self, form):
+        # Invalidate dashboard cache
+        now = timezone.now()
+        cache_key = f'dashboard_{self.request.user.id}_{now.year}_{now.month}'
+        cache.delete(cache_key)
+        return super().form_valid(form)
 
 
 # ======================================
@@ -300,6 +367,13 @@ class ExpenseDeleteView(LoginRequiredMixin, UpdateView):
 
     def post(self, request, *args, **kwargs):
         expense: Expense = cast(Expense, self.get_object())
+        
+        # Invalidate dashboard cache
+        now = timezone.now()
+        cache_key = f'dashboard_{request.user.id}_{now.year}_{now.month}'
+        cache.delete(cache_key)
+        
+        logger.info(f"User {request.user.email} soft-deleted expense: {expense.title} - ₹{expense.amount}")
         expense.is_deleted = True
         expense.save()
         return redirect("expense-list")
@@ -322,6 +396,12 @@ class MonthlyBudgetCreateView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.user = self.request.user
+        
+        # Invalidate dashboard cache
+        now = timezone.now()
+        cache_key = f'dashboard_{self.request.user.id}_{now.year}_{now.month}'
+        cache.delete(cache_key)
+        
         return super().form_valid(form)
     
 
@@ -401,6 +481,11 @@ class MonthlyBudgetDeleteView(LoginRequiredMixin, DeleteView):
     def delete(self, request, *args, **kwargs):
         """Override delete to also remove category budgets"""
         budget = self.get_object()
+        
+        # Invalidate dashboard cache for this budget's month
+        cache_key = f'dashboard_{request.user.id}_{budget.year}_{budget.month}'
+        cache.delete(cache_key)
+        
         # Also delete associated category budgets for this month
         CategoryBudget.objects.filter(
             user=request.user,
@@ -559,5 +644,9 @@ class CategoryBudgetSetupView(LoginRequiredMixin, TemplateView):
                     year=year,
                     month=month
                 ).delete()
+        
+        # Invalidate dashboard cache
+        cache_key = f'dashboard_{user.id}_{year}_{month}'
+        cache.delete(cache_key)
         
         return redirect('dashboard')

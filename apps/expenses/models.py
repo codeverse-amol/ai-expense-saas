@@ -50,6 +50,10 @@ class CategoryBudget(models.Model):
     class Meta:
         unique_together = ("user", "category", "year", "month")
         ordering = ["category__name"]
+        indexes = [
+            models.Index(fields=["user", "year", "month"]),
+            models.Index(fields=["category", "year", "month"]),
+        ]
 
     def __str__(self):
         return f"{self.category.name}: {self.amount} ({self.month}/{self.year})"
@@ -86,6 +90,9 @@ class Expense(models.Model):
         ordering = ["-expense_date"]
         indexes = [
             models.Index(fields=["user", "expense_date"]),
+            models.Index(fields=["user", "category", "expense_date"]),
+            models.Index(fields=["user", "is_deleted", "expense_date"]),
+            models.Index(fields=["expense_date", "category"]),  # For aggregations
         ]
 
     def __str__(self):
@@ -114,6 +121,9 @@ class MonthlyBudget(models.Model):
     class Meta:
         unique_together = ("user", "year", "month")
         ordering = ["-year", "-month"]
+        indexes = [
+            models.Index(fields=["user", "year", "month"]),
+        ]
 
     def __str__(self):
         return f"{self.user.email} - {self.month}/{self.year}"

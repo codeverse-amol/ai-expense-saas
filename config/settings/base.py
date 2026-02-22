@@ -155,6 +155,39 @@ else:
     }
 
 # --------------------------------------------------
+# CACHING CONFIGURATION
+# --------------------------------------------------
+# Use Redis for caching if REDIS_URL is provided, otherwise use local memory
+REDIS_URL = os.environ.get("REDIS_URL")
+
+if REDIS_URL:
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": REDIS_URL,
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                "SOCKET_CONNECT_TIMEOUT": 5,
+                "SOCKET_TIMEOUT": 5,
+                "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",
+                "CONNECTION_POOL_KWARGS": {"max_connections": 50},
+            },
+            "KEY_PREFIX": "ai_expense",
+            "TIMEOUT": 300,  # 5 minutes default
+        }
+    }
+    print(f"[DEBUG] ✓ Redis caching configured")
+else:
+    # Fallback to local memory cache for development
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "unique-snowflake",
+        }
+    }
+    print(f"[DEBUG] Using local memory cache (development)")
+
+# --------------------------------------------------
 # PASSWORD VALIDATION
 # --------------------------------------------------
 AUTH_PASSWORD_VALIDATORS = [
@@ -212,35 +245,101 @@ LOGOUT_REDIRECT_URL = "login"
 # --------------------------------------------------
 # LOGGING
 # --------------------------------------------------
+# Create logs directory if it doesn't exist
+LOGS_DIR = BASE_DIR / "logs"
+LOGS_DIR.mkdir(exist_ok=True)
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
         "verbose": {
-            "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
+            "format": "{levelname} {asctime} {module} {funcName} {process:d} {thread:d} | {message}",
             "style": "{",
         },
         "simple": {
-            "format": "{levelname} {message}",
+            "format": "{levelname} {asctime} | {message}",
             "style": "{",
+        },
+    },
+    "filters": {
+        "require_debug_false": {
+            "()": "django.utils.log.RequireDebugFalse",
+        },
+        "require_debug_true": {
+            "()": "django.utils.log.RequireDebugTrue",
         },
     },
     "handlers": {
         "console": {
+            "level": "INFO",
             "class": "logging.StreamHandler",
             "formatter": "simple",
         },
+        "file": {
+            "level": "INFO",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": LOGS_DIR / "django.log",
+            "maxBytes": 1024 * 1024 * 15,  # 15MB
+            "backupCount": 10,
+            "formatter": "verbose",
+        },
+        "error_file": {
+            "level": "ERROR",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": LOGS_DIR / "errors.log",
+            "maxBytes": 1024 * 1024 * 10,  # 10MB
+            "backupCount": 10,
+            "formatter": "verbose",
+        },
+        "performance_file": {
+            "level": "INFO",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": LOGS_DIR / "performance.log",
+            "maxBytes": 1024 * 1024 * 5,  # 5MB
+            "backupCount": 5,
+            "formatter": "verbose",
+        },
     },
     "loggers": {
+        "django": {
+            "handlers": ["console", "file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "django.request": {
+            "handlers": ["console", "error_file"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+        "django.db.backends": {
+            "handlers": ["console"],
+            "level": "WARNING",  # Set to DEBUG to see all SQL queries
+            "propagate": False,
+        },
         "apps.users": {
-            "handlers": ["console"],
+            "handlers": ["console", "file"],
             "level": "INFO",
-            "propagate": True,
+            "propagate": False,
         },
-        "django.contrib.auth": {
-            "handlers": ["console"],
+        "apps.expenses": {
+            "handlers": ["console", "file"],
             "level": "INFO",
-            "propagate": True,
+            "propagate": False,
         },
+        "apps.ai_engine": {
+            "handlers": ["console", "file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "performance": {
+            "handlers": ["performance_file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+    },
+    "root": {
+        "handlers": ["console", "file", "error_file"],
+        "level": "INFO",
     },
 }
