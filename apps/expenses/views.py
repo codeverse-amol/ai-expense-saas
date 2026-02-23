@@ -693,18 +693,25 @@ class CategoryUpdateView(LoginRequiredMixin, UpdateView):
     model = Category
     form_class = CategoryForm
     template_name = "expenses/category_form.html"
-    success_url = reverse_lazy("category-list")
     login_url = 'login'
 
     def get_queryset(self):
         return Category.objects.filter(user=self.request.user)
+    
+    def get_success_url(self):
+        # Check if there are year/month parameters in the session or referrer
+        year = self.request.GET.get('year') or self.request.POST.get('year')
+        month = self.request.GET.get('month') or self.request.POST.get('month')
+        
+        if year and month:
+            return f"{reverse_lazy('category-list')}?year={year}&month={month}"
+        return reverse_lazy('category-list')
 
 
 class CategoryDeleteView(LoginRequiredMixin, UpdateView):
     """Delete a category"""
     model = Category
     template_name = "expenses/category_confirm_delete.html"
-    success_url = reverse_lazy("category-list")
     login_url = 'login'
 
     def get_queryset(self):
@@ -718,12 +725,20 @@ class CategoryDeleteView(LoginRequiredMixin, UpdateView):
             is_deleted=False
         ).count()
         
+        # Get year/month parameters to preserve them
+        year = request.GET.get('year') or request.POST.get('year')
+        month = request.GET.get('month') or request.POST.get('month')
+        redirect_url = reverse_lazy('category-list')
+        
+        if year and month:
+            redirect_url = f"{redirect_url}?year={year}&month={month}"
+        
         if expense_count > 0:
             # Redirect back with error message (you can add messages framework)
-            return redirect("category-list")
+            return redirect(redirect_url)
         
         category.delete()
-        return redirect("category-list")
+        return redirect(redirect_url)
 
 
 # ======================================

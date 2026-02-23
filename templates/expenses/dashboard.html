@@ -83,7 +83,14 @@
 {% if category_budget_data %}
 <div class="card mt-4">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <span><i class="fas fa-chart-pie me-2"></i>Category Budget Breakdown</span>
+        <span>
+            <i class="fas fa-chart-pie me-2"></i>
+            {% if budget_amount > 0 %}
+                Category Budget Breakdown
+            {% else %}
+                Spending by Category
+            {% endif %}
+        </span>
         <a href="{% url 'category-budget-setup' %}" class="btn btn-sm btn-primary">
             <i class="fas fa-edit"></i> Edit Budgets
         </a>

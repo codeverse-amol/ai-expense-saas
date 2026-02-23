@@ -109,10 +109,10 @@
                 
                 <div class="d-grid gap-2">
                     <div class="btn-group w-100">
-                        <a href="{% url 'category-edit' item.category.id %}" class="btn btn-sm btn-outline-primary">
+                        <a href="{% url 'category-edit' item.category.id %}?year={{ year }}&month={{ month }}" class="btn btn-sm btn-outline-primary">
                             <i class="fas fa-edit"></i> Edit
                         </a>
-                        <a href="{% url 'category-delete' item.category.id %}" class="btn btn-sm btn-outline-danger">
+                        <a href="{% url 'category-delete' item.category.id %}?year={{ year }}&month={{ month }}" class="btn btn-sm btn-outline-danger">
                             <i class="fas fa-trash"></i> Delete
                         </a>
                     </div>

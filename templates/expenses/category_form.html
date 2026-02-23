@@ -18,6 +18,14 @@
                 <form method="post">
                     {% csrf_token %}
                     
+                    <!-- Preserve year and month parameters -->
+                    {% if request.GET.year %}
+                    <input type="hidden" name="year" value="{{ request.GET.year }}">
+                    {% endif %}
+                    {% if request.GET.month %}
+                    <input type="hidden" name="month" value="{{ request.GET.month }}">
+                    {% endif %}
+                    
                     {% if form.non_field_errors %}
                     <div class="alert alert-danger">
                         {{ form.non_field_errors }}
@@ -43,7 +51,7 @@
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-save"></i> Save Category
                         </button>
-                        <a href="{% url 'category-list' %}" class="btn btn-secondary">
+                        <a href="{% url 'category-list' %}{% if request.GET.year and request.GET.month %}?year={{ request.GET.year }}&month={{ request.GET.month }}{% endif %}" class="btn btn-secondary">
                             <i class="fas fa-times"></i> Cancel
                         </a>
                     </div>
