@@ -758,27 +758,28 @@ class CategoryBudgetSetupView(LoginRequiredMixin, TemplateView):
         year = int(self.request.GET.get('year', now.year))
         month = int(self.request.GET.get('month', now.month))
         
-        # Get all user's categories
-        categories = Category.objects.filter(user=user)
-        
-        # Get existing category budgets for this month
-        existing_budgets = {}
+        # Get existing category budgets for this month ONLY
         category_budgets = CategoryBudget.objects.filter(
             user=user,
             year=year,
             month=month
-        )
+        ).select_related('category')
+        
+        # Prepare category data - ONLY categories that have budgets set for this month
+        category_data = []
+        existing_budgets = {}
         for cb in category_budgets:
+            category_data.append({
+                'id': cb.category.id,
+                'name': cb.category.name,
+                'current_budget': cb.amount
+            })
             existing_budgets[cb.category_id] = cb.amount
         
-        # Prepare category data with current budgets
-        category_data = []
-        for category in categories:
-            category_data.append({
-                'id': category.id,
-                'name': category.name,
-                'current_budget': existing_budgets.get(category.id, 0)
-            })
+        # Get all categories for the dropdown (to add budget to existing category)
+        all_categories = Category.objects.filter(user=user)
+        # Get categories that DON'T have budget set for this month
+        categories_without_budget = all_categories.exclude(id__in=existing_budgets.keys())
         
         # Get monthly budget if exists
         monthly_budget = MonthlyBudget.objects.filter(
@@ -788,6 +789,7 @@ class CategoryBudgetSetupView(LoginRequiredMixin, TemplateView):
         ).first()
         
         context['categories'] = category_data
+        context['categories_without_budget'] = categories_without_budget
         context['year'] = year
         context['month'] = month
         context['monthly_budget'] = monthly_budget
@@ -802,29 +804,40 @@ class CategoryBudgetSetupView(LoginRequiredMixin, TemplateView):
         year = int(request.POST.get('year', now.year))
         month = int(request.POST.get('month', now.month))
         
-        # Process each category budget
-        categories = Category.objects.filter(user=user)
-        for category in categories:
-            amount_key = f'budget_{category.id}'
-            amount = request.POST.get(amount_key, '0').strip()
+        # Check if this is adding an existing category to the month
+        if 'category_id' in request.POST and 'budget_amount' in request.POST:
+            category_id = request.POST.get('category_id')
+            budget_amount = float(request.POST.get('budget_amount', 0))
             
-            if amount and float(amount) > 0:
-                # Update or create category budget
+            if category_id and budget_amount > 0:
+                category = Category.objects.get(id=category_id, user=user)
                 CategoryBudget.objects.update_or_create(
                     user=user,
                     category=category,
                     year=year,
                     month=month,
-                    defaults={'amount': float(amount)}
+                    defaults={'amount': budget_amount}
                 )
-            else:
-                # Delete if amount is 0 or empty
-                CategoryBudget.objects.filter(
-                    user=user,
-                    category=category,
-                    year=year,
-                    month=month
-                ).delete()
+        else:
+            # Process each category budget (existing form)
+            # Only process categories that already have budgets for this month
+            existing_budgets = CategoryBudget.objects.filter(
+                user=user,
+                year=year,
+                month=month
+            )
+            
+            for cat_budget in existing_budgets:
+                amount_key = f'budget_{cat_budget.category_id}'
+                amount = request.POST.get(amount_key, '0').strip()
+                
+                if amount and float(amount) > 0:
+                    # Update category budget
+                    cat_budget.amount = float(amount)
+                    cat_budget.save()
+                else:
+                    # Delete if amount is 0 or empty
+                    cat_budget.delete()
         
         # Invalidate dashboard cache
         cache_key = f'dashboard_{user.id}_{year}_{month}'
