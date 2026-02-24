@@ -91,7 +91,7 @@
                 Spending by Category
             {% endif %}
         </span>
-        <a href="{% url 'category-budget-setup' %}" class="btn btn-sm btn-primary">
+        <a href="{% url 'category-budget-setup' %}?year={{ selected_year }}&month={{ selected_month }}" class="btn btn-sm btn-primary">
             <i class="fas fa-edit"></i> Edit Budgets
         </a>
     </div>
