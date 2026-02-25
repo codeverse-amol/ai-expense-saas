@@ -844,6 +844,19 @@ h5 {
     border-left: 4px solid var(--danger-color) !important;
 }
 
+.border-left-info {
+    border-left: 4px solid #3b82f6 !important;
+}
+
+/* AI Insights Section */
+.bg-gradient-info {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.border-info {
+    border-color: #3b82f6 !important;
+}
+
 .text-sm {
     font-size: 0.875rem;
 }

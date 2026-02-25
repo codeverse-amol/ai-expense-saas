@@ -124,6 +124,14 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             
             # AI-powered forecast for next month
             predicted_next_month = forecast_next_month_spending(user)
+            
+            # Generate AI insights for the user
+            try:
+                ai_insights = generate_insights_for_user(user)
+                logger.info(f"Generated {len(ai_insights)} AI insights for user {user.email}")
+            except Exception as e:
+                logger.error(f"Error generating AI insights: {e}")
+                ai_insights = []
 
             # Category-wise budget breakdown (optimized with prefetch)
             # Prefetch expenses for selected month to avoid N+1 queries
@@ -194,7 +202,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 "unallocated_budget": unallocated_budget,
                 "current_month": selected_date,  # First day of selected month for date formatting
                 "current_year": year,
-                "ai_insights": context.get("ai_insights", []),
+                "ai_insights": ai_insights,
             }
             cache.set(cache_key, dashboard_data, 60 * 15)  # 15 minutes
             logger.info(f"Dashboard data cached for user {user.email}")
@@ -204,10 +212,11 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             context["budget_amount"] = budget_amount
             context["remaining_amount"] = remaining_amount
             context["percentage_used"] = round(percentage_used, 2)
-            context["predicted_next_month"] = 0
+            context["predicted_next_month"] = predicted_next_month
             context["category_budget_data"] = category_budget_data
             context["total_category_budget"] = total_category_budget
             context["unallocated_budget"] = unallocated_budget
+            context["ai_insights"] = ai_insights
             
             from datetime import date
             selected_date = date(year, month, 1)

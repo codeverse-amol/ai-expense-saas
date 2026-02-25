@@ -141,7 +141,7 @@ def calculate_budget_risk_score(user, month: int = None, year: int = None) -> in
         daily_burn_rate = float(current_spending) / days_elapsed
         
         # Project end-of-month spending
-        projected_spending = current_spending + (daily_burn_rate * days_remaining)
+        projected_spending = float(current_spending) + (daily_burn_rate * days_remaining)
         
         # Calculate percentage of budget
         percentage = (projected_spending / float(budget.amount)) * 100

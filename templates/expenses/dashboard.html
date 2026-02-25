@@ -79,6 +79,92 @@
     </div>
 </div>
 
+<!-- AI Insights Section -->
+{% if ai_insights %}
+<div class="card mt-4 border-info">
+    <div class="card-header bg-gradient-info text-white">
+        <h5 class="mb-0">
+            <i class="fas fa-brain me-2"></i>AI Insights
+        </h5>
+        <small>Powered by Machine Learning</small>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            {% for insight in ai_insights %}
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="card h-100 border-left-{% if insight.severity == 'danger' %}danger{% elif insight.severity == 'warning' %}warning{% else %}info{% endif %}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="mb-0">
+                                {% if insight.insight_type == 'forecast' %}
+                                    <i class="fas fa-chart-line text-primary"></i>
+                                {% elif insight.insight_type == 'anomaly' %}
+                                    <i class="fas fa-exclamation-triangle text-warning"></i>
+                                {% elif insight.insight_type == 'risk' %}
+                                    <i class="fas fa-shield-alt text-danger"></i>
+                                {% elif insight.insight_type == 'trend' %}
+                                    <i class="fas fa-trending-up text-success"></i>
+                                {% else %}
+                                    <i class="fas fa-lightbulb text-info"></i>
+                                {% endif %}
+                                <span class="ms-1">{{ insight.get_insight_type_display }}</span>
+                            </h6>
+                            <span class="badge bg-{% if insight.severity == 'danger' %}danger{% elif insight.severity == 'warning' %}warning{% else %}info{% endif %}">
+                                {{ insight.get_severity_display }}
+                            </span>
+                        </div>
+                        <h6 class="fw-bold mt-2">{{ insight.title }}</h6>
+                        <p class="text-muted small mb-2">{{ insight.message }}</p>
+                        
+                        {% if insight.predicted_amount or insight.actual_amount or insight.risk_score %}
+                        <div class="mt-2 pt-2 border-top">
+                            {% if insight.predicted_amount %}
+                            <div class="d-flex justify-content-between">
+                                <small class="text-muted">Predicted:</small>
+                                <strong class="text-primary">₹{{ insight.predicted_amount }}</strong>
+                            </div>
+                            {% endif %}
+                            {% if insight.actual_amount %}
+                            <div class="d-flex justify-content-between">
+                                <small class="text-muted">Amount:</small>
+                                <strong class="text-warning">₹{{ insight.actual_amount }}</strong>
+                            </div>
+                            {% endif %}
+                            {% if insight.risk_score %}
+                            <div class="d-flex justify-content-between">
+                                <small class="text-muted">Risk Level:</small>
+                                <strong class="text-{% if insight.risk_score > 80 %}danger{% elif insight.risk_score > 50 %}warning{% else %}success{% endif %}">
+                                    {{ insight.risk_score }}%
+                                </strong>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="text-end mt-2">
+                            <small class="text-muted">
+                                <i class="fas fa-clock me-1"></i>{{ insight.created_at|timesince }} ago
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="card mt-4 border-secondary">
+    <div class="card-body text-center py-4">
+        <i class="fas fa-robot fa-3x text-muted mb-3"></i>
+        <h5 class="text-muted">No AI Insights Yet</h5>
+        <p class="text-muted mb-0">
+            Start tracking expenses and budgets to receive AI-powered insights and predictions!
+        </p>
+    </div>
+</div>
+{% endif %}
+
 <!-- Category-wise Budget Breakdown -->
 {% if category_budget_data %}
 <div class="card mt-4">
