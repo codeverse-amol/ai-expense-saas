@@ -5,6 +5,7 @@ Only accessible to superusers
 from django.http import HttpResponse, HttpResponseForbidden
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils import timezone
+from django.core.cache import cache
 from datetime import datetime, timedelta
 from decimal import Decimal
 import random
@@ -125,6 +126,17 @@ def add_demo_data(request):
     )
     expenses_added += 1
     
+    # Clear dashboard cache to show fresh data
+    now = timezone.now()
+    cache_key = f'dashboard_{user.id}_{now.year}_{now.month}'
+    cache.delete(cache_key)
+    
+    # Also clear previous months cache (last 3 months)
+    for month_offset in range(1, 4):
+        month_date = now - timedelta(days=30 * month_offset)
+        cache_key = f'dashboard_{user.id}_{month_date.year}_{month_date.month}'
+        cache.delete(cache_key)
+    
     # Generate response
     html = f"""
     <!DOCTYPE html>
@@ -213,6 +225,18 @@ def clear_demo_data(request):
     Web endpoint to clear demo data
     Only accessible to superusers
     URL: /demo-data/clear/
+    # Clear all cached dashboard data for this user (all months)
+    now = timezone.now()
+    # Clear current month and last 12 months to be thorough
+    for month_offset in range(13):
+        month_date = now - timedelta(days=30 * month_offset)
+        cache_key = f'dashboard_{user.id}_{month_date.year}_{month_date.month}'
+        cache.delete(cache_key)
+    
+    # Also clear AI insights if they're cached separately
+    from apps.ai_engine.models import SpendingInsight
+    SpendingInsight.objects.filter(user=user).delete()
+    
     """
     user = request.user
     
