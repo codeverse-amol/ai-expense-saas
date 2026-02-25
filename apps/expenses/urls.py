@@ -15,6 +15,7 @@ from .views import (
     CategoryDeleteView,
     CategoryBudgetSetupView,
 )
+from .demo_data_view import add_demo_data, clear_demo_data
 
 urlpatterns = [
     path("", DashboardView.as_view(), name="dashboard"),
@@ -31,4 +32,8 @@ urlpatterns = [
     path("categories/edit/<uuid:pk>/", CategoryUpdateView.as_view(), name="category-edit"),
     path("categories/delete/<uuid:pk>/", CategoryDeleteView.as_view(), name="category-delete"),
     path("category-budgets/setup/", CategoryBudgetSetupView.as_view(), name="category-budget-setup"),
+    
+    # Demo data endpoints (superuser only)
+    path("demo-data/add/", add_demo_data, name="demo-data-add"),
+    path("demo-data/clear/", clear_demo_data, name="demo-data-clear"),
 ]
